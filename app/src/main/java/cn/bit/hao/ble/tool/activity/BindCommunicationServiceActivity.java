@@ -77,8 +77,7 @@ public abstract class BindCommunicationServiceActivity extends BaseActivity impl
 		super.onPause();
 		CommunicationResponseManager.getInstance().setUINotification(false);
 		if (isFinishing()) {
-			// 如果正在退出此Activity，那么应该结束此Activity的业务逻辑
-			// 即此后Activity不接收会导致UI变化的状态更新
+			// 如果正在退出此Activity，那么应该结束此Activity的业务逻辑，即此后Activity不接收会导致UI变化的状态更新
 			// 如果在onDestory中再remove此Callback的话，会影响到后一个Callback的业务逻辑，所以必须尽早remove
 			unbindCommunicationService();
 			CommunicationResponseManager.getInstance().removeUICallback(this);
