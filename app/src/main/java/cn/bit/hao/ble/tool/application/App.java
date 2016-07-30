@@ -7,7 +7,7 @@ import android.app.Application;
 import android.content.Intent;
 import android.util.Log;
 
-import cn.bit.hao.ble.tool.service.SystemStateService;
+import cn.bit.hao.ble.tool.service.MonitorConnectivityService;
 
 
 /**
@@ -20,6 +20,6 @@ public class App extends Application {
 	public void onCreate() {
 		super.onCreate();
 		Log.i(TAG, "Application onCreate");
-		startService(new Intent(this, SystemStateService.class));
+		startService(new Intent(this, MonitorConnectivityService.class));
 	}
 }

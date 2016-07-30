@@ -4,7 +4,10 @@
 package cn.bit.hao.ble.tool.data;
 
 
+import android.os.Bundle;
+
 import cn.bit.hao.ble.tool.application.Constants;
+import cn.bit.hao.ble.tool.events.CommunicationResponseEvent;
 import cn.bit.hao.ble.tool.manager.CommunicationResponseManager;
 import cn.bit.hao.ble.tool.protocol.FirstKindBLEDeviceProtocol;
 import cn.bit.hao.ble.tool.protocol.GeneralProtocol;
@@ -18,6 +21,16 @@ public abstract class BLEDevice {
 
 	protected int value;
 	protected String friendlyName;
+
+	protected String macAddress;
+
+	public BLEDevice(String macAddress) {
+		this.macAddress = macAddress;
+	}
+
+	public String getMacAddress() {
+		return macAddress;
+	}
 
 	//==============================================================================================
 	// 如果UI有对某些属性变化有需求，那么才会有对应的属性代号用于反馈给UI
@@ -35,15 +48,11 @@ public abstract class BLEDevice {
 		}
 		this.friendlyName = friendlyName;
 		// 每变化一个状态则发出一次通知，所以，一次返回有可能有多次通知
-		CommunicationResponseManager.getInstance().sendResponse(FRIENDLY_NAME_CODE);
-	}
-
-	public int getValue() {
-		return value;
-	}
-
-	public void setValue(int value) {
-		this.value = value;
+		CommunicationResponseEvent responseEvent = new CommunicationResponseEvent(FRIENDLY_NAME_CODE);
+		Bundle eventData = new Bundle();
+		eventData.putString(CommunicationResponseEvent.DEVICE_MAC_ADDRESS, macAddress);
+		responseEvent.setEventData(eventData);
+		CommunicationResponseManager.getInstance().sendResponse(responseEvent);
 	}
 
 	/**

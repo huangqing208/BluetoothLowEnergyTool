@@ -19,8 +19,8 @@ import cn.bit.hao.ble.tool.service.CommunicationService;
 /**
  * @author wuhao on 2016/7/14
  */
-public abstract class BindCommunicationServiceActivity extends BaseActivity implements CommunicationResponseCallback {
-	private static final String TAG = BindCommunicationServiceActivity.class.getSimpleName();
+public abstract class CommunicationActivity extends BaseActivity implements CommunicationResponseCallback {
+	private static final String TAG = CommunicationActivity.class.getSimpleName();
 
 	protected CommunicationService communicationService;
 
@@ -33,14 +33,10 @@ public abstract class BindCommunicationServiceActivity extends BaseActivity impl
 
 	private void bindCommunicationService() {
 		if (communicationService == null) {
-			bindService(new Intent(this, CommunicationService.class), communicationServiceConnection, Context.BIND_AUTO_CREATE);
+			bindService(new Intent(this, CommunicationService.class),
+					communicationServiceConnection, Context.BIND_AUTO_CREATE);
 		}
 	}
-
-	/**
-	 * 自此开始Activity可以和Service通信
-	 */
-	protected abstract void onCommunicationServiceBound();
 
 	private ServiceConnection communicationServiceConnection = new ServiceConnection() {
 		@Override
@@ -59,7 +55,12 @@ public abstract class BindCommunicationServiceActivity extends BaseActivity impl
 		}
 	};
 
-	protected void unbindCommunicationService() {
+	/**
+	 * 自此开始Activity可以和Service通信
+	 */
+	protected abstract void onCommunicationServiceBound();
+
+	private void unbindCommunicationService() {
 		if (communicationService != null) {
 			unbindService(communicationServiceConnection);
 			communicationService = null;
@@ -69,6 +70,7 @@ public abstract class BindCommunicationServiceActivity extends BaseActivity impl
 	@Override
 	protected void onResume() {
 		super.onResume();
+		// 此后需要重新刷新UI才行，因为此前的状态变化没有接收到
 		CommunicationResponseManager.getInstance().setUINotification(true);
 	}
 

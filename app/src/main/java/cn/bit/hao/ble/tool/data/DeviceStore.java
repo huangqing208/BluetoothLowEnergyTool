@@ -3,45 +3,51 @@
  */
 package cn.bit.hao.ble.tool.data;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author wuhao on 2016/7/14
  */
 public class DeviceStore {
 
-	private List<BLEDevice> BLEDeviceList;
+	private Map<String, BLEDevice> bleDeviceMap;
 
 	private DeviceStore() {
-		BLEDeviceList = new ArrayList<>();
+		bleDeviceMap = new HashMap<>();
 	}
 
-	private static DeviceStore instance = new DeviceStore();
+	private static DeviceStore instance;
 
-	public static DeviceStore getInstance() {
+	public static synchronized DeviceStore getInstance() {
+		if (instance == null) {
+			instance = new DeviceStore();
+		}
 		return instance;
 	}
 
-	public BLEDevice getDevice(int index) {
-		if (index < 0 || index >= BLEDeviceList.size()) {
-			return null;
-		}
-		return BLEDeviceList.get(index);
+	public BLEDevice getDevice(String macAddress) {
+		return bleDeviceMap.get(macAddress);
 	}
 
-	public int addDevice(BLEDevice BLEDevice) {
-		if (BLEDeviceList.contains(BLEDevice)) {
-			return -1;
+	public boolean addDevice(BLEDevice BLEDevice) {
+		if (bleDeviceMap.containsKey(BLEDevice.getMacAddress())) {
+			return false;
 		}
-		BLEDeviceList.add(BLEDevice);
+		bleDeviceMap.put(BLEDevice.getMacAddress(), BLEDevice);
 		// 如果需要的话，在此做持久存储操作
 
-		return BLEDeviceList.size() - 1;
+		return true;
 	}
 
-	public void removeDevice(BLEDevice BLEDevice) {
-		BLEDeviceList.remove(BLEDevice);
+	public boolean removeDevice(String macAddress) {
+		BLEDevice bleDevice = bleDeviceMap.remove(macAddress);
+		if (bleDevice == null) {
+			return false;
+		}
+		// 如果需要的话，在此作持久存储操作
+
+		return true;
 	}
 
 }

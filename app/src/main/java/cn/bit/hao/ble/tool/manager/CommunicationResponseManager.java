@@ -6,10 +6,13 @@ package cn.bit.hao.ble.tool.manager;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.bit.hao.ble.tool.events.CommunicationResponseEvent;
 import cn.bit.hao.ble.tool.interfaces.CommunicationResponseCallback;
 
 
 /**
+ * 此类用于适时返回事件给需要关注的对象
+ *
  * @author wuhao on 2016/7/15
  */
 public class CommunicationResponseManager {
@@ -29,27 +32,35 @@ public class CommunicationResponseManager {
 	}
 
 	public boolean addUICallback(CommunicationResponseCallback callback) {
-		if (uiCallbacks.contains(callback)) {
-			return false;
+		synchronized (uiCallbacks) {
+			if (uiCallbacks.contains(callback)) {
+				return false;
+			}
+			uiCallbacks.add(callback);
+			return true;
 		}
-		uiCallbacks.add(callback);
-		return true;
 	}
 
 	public void removeUICallback(CommunicationResponseCallback callback) {
-		uiCallbacks.remove(callback);
+		synchronized (uiCallbacks) {
+			uiCallbacks.remove(callback);
+		}
 	}
 
 	public boolean addTaskCallback(CommunicationResponseCallback callback) {
-		if (taskCallbacks.contains(callback)) {
-			return false;
+		synchronized (taskCallbacks) {
+			if (taskCallbacks.contains(callback)) {
+				return false;
+			}
+			taskCallbacks.add(callback);
+			return true;
 		}
-		taskCallbacks.add(callback);
-		return true;
 	}
 
 	public void removeTaskCallback(CommunicationResponseCallback callback) {
-		taskCallbacks.remove(callback);
+		synchronized (taskCallbacks) {
+			taskCallbacks.remove(callback);
+		}
 	}
 
 	private boolean notifyUI = true;
@@ -58,17 +69,21 @@ public class CommunicationResponseManager {
 		notifyUI = notification;
 	}
 
-	public void sendResponse(int filedCode) {
-		for (int i = 0; i < taskCallbacks.size(); ++i) {
-			taskCallbacks.get(i).onCommunicationResponded(filedCode);
+	public void sendResponse(CommunicationResponseEvent responseEvent) {
+		synchronized (taskCallbacks) {
+			for (int i = 0; i < taskCallbacks.size(); ++i) {
+				taskCallbacks.get(i).onCommunicationResponded(responseEvent);
+			}
 		}
 		/**
 		 * UICallback只提醒最后一个
 		 */
 		if (notifyUI) {
-			int size = uiCallbacks.size();
-			if (size > 0) {
-				uiCallbacks.get(size - 1).onCommunicationResponded(filedCode);
+			synchronized (uiCallbacks) {
+				int size = uiCallbacks.size();
+				if (size > 0) {
+					uiCallbacks.get(size - 1).onCommunicationResponded(responseEvent);
+				}
 			}
 		}
 	}

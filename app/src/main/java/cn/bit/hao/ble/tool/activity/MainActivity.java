@@ -4,7 +4,7 @@ import android.os.Bundle;
 
 import cn.bit.hao.ble.tool.R;
 
-public class MainActivity extends BindCommunicationServiceActivity {
+public class MainActivity extends CommunicationActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -18,7 +18,7 @@ public class MainActivity extends BindCommunicationServiceActivity {
 	}
 
 	@Override
-	public void onCommunicationResponded(int filedCode) {
+	public void onCommunicationResponded(int fieldCode) {
 
 	}
 }
