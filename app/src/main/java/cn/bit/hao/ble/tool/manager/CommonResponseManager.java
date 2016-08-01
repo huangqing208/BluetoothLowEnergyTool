@@ -6,8 +6,8 @@ package cn.bit.hao.ble.tool.manager;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.bit.hao.ble.tool.events.CommunicationResponseEvent;
-import cn.bit.hao.ble.tool.interfaces.CommunicationResponseCallback;
+import cn.bit.hao.ble.tool.callbacks.CommonResponseCallback;
+import cn.bit.hao.ble.tool.events.ResponseEvent;
 
 
 /**
@@ -15,23 +15,23 @@ import cn.bit.hao.ble.tool.interfaces.CommunicationResponseCallback;
  *
  * @author wuhao on 2016/7/15
  */
-public class CommunicationResponseManager {
+public class CommonResponseManager {
 
-	private List<CommunicationResponseCallback> uiCallbacks;
-	private List<CommunicationResponseCallback> taskCallbacks;
+	private List<CommonResponseCallback> uiCallbacks;
+	private List<CommonResponseCallback> taskCallbacks;
 
-	private CommunicationResponseManager() {
+	private CommonResponseManager() {
 		uiCallbacks = new ArrayList<>();
 		taskCallbacks = new ArrayList<>();
 	}
 
-	private static CommunicationResponseManager instance = new CommunicationResponseManager();
+	private static CommonResponseManager instance = new CommonResponseManager();
 
-	public static CommunicationResponseManager getInstance() {
+	public static CommonResponseManager getInstance() {
 		return instance;
 	}
 
-	public boolean addUICallback(CommunicationResponseCallback callback) {
+	public boolean addUICallback(CommonResponseCallback callback) {
 		synchronized (uiCallbacks) {
 			if (uiCallbacks.contains(callback)) {
 				return false;
@@ -41,13 +41,13 @@ public class CommunicationResponseManager {
 		}
 	}
 
-	public void removeUICallback(CommunicationResponseCallback callback) {
+	public void removeUICallback(CommonResponseCallback callback) {
 		synchronized (uiCallbacks) {
 			uiCallbacks.remove(callback);
 		}
 	}
 
-	public boolean addTaskCallback(CommunicationResponseCallback callback) {
+	public boolean addTaskCallback(CommonResponseCallback callback) {
 		synchronized (taskCallbacks) {
 			if (taskCallbacks.contains(callback)) {
 				return false;
@@ -57,22 +57,22 @@ public class CommunicationResponseManager {
 		}
 	}
 
-	public void removeTaskCallback(CommunicationResponseCallback callback) {
+	public void removeTaskCallback(CommonResponseCallback callback) {
 		synchronized (taskCallbacks) {
 			taskCallbacks.remove(callback);
 		}
 	}
 
-	private boolean notifyUI = true;
+	private boolean notifyUI = false;
 
 	public void setUINotification(boolean notification) {
 		notifyUI = notification;
 	}
 
-	public void sendResponse(CommunicationResponseEvent responseEvent) {
+	public void sendResponse(ResponseEvent responseEvent) {
 		synchronized (taskCallbacks) {
 			for (int i = 0; i < taskCallbacks.size(); ++i) {
-				taskCallbacks.get(i).onCommunicationResponded(responseEvent);
+				taskCallbacks.get(i).onCommonResponded(responseEvent.clone());
 			}
 		}
 		/**
@@ -82,7 +82,7 @@ public class CommunicationResponseManager {
 			synchronized (uiCallbacks) {
 				int size = uiCallbacks.size();
 				if (size > 0) {
-					uiCallbacks.get(size - 1).onCommunicationResponded(responseEvent);
+					uiCallbacks.get(size - 1).onCommonResponded(responseEvent);
 				}
 			}
 		}

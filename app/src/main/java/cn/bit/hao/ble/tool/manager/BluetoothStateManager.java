@@ -5,13 +5,8 @@ package cn.bit.hao.ble.tool.manager;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
-import android.os.Bundle;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import cn.bit.hao.ble.tool.events.BluetoothEvent;
-import cn.bit.hao.ble.tool.interfaces.BluetoothCallback;
+import cn.bit.hao.ble.tool.events.BluetoothStateEvent;
 import cn.bit.hao.ble.tool.utils.BluetoothUtil;
 
 /**
@@ -22,12 +17,17 @@ import cn.bit.hao.ble.tool.utils.BluetoothUtil;
 public class BluetoothStateManager {
 	private static final String TAG = BluetoothStateManager.class.getSimpleName();
 
-	private BluetoothStateManager() {
-		uiCallbacks = new ArrayList<>();
-		taskCallbacks = new ArrayList<>();
-	}
-
 	private static BluetoothStateManager instance;
+
+	/**
+	 * 默认设备支持蓝牙
+	 */
+	private boolean bluetoothSupported = true;
+
+	private int bluetoothState = BluetoothAdapter.ERROR;
+
+	private BluetoothStateManager() {
+	}
 
 	public static synchronized BluetoothStateManager getInstance(Context context) {
 		if (instance == null) {
@@ -54,98 +54,6 @@ public class BluetoothStateManager {
 		return true;
 	}
 
-	/**
-	 * 默认设备支持蓝牙
-	 */
-	private boolean bluetoothSupported = true;
-
-	private int bluetoothState = BluetoothAdapter.ERROR;
-
-	private List<BluetoothCallback> uiCallbacks;
-	private List<BluetoothCallback> taskCallbacks;
-
-	/**
-	 * <p>添加一个UI回调，不会添加重复项，如果尝试添加重复项则返回false</p>
-	 *
-	 * @param callback 被添加的UI回调
-	 * @return 如果添加成功则返回true
-	 */
-	public boolean addUICallback(BluetoothCallback callback) {
-		if (!bluetoothSupported) {
-			return false;
-		}
-		synchronized (uiCallbacks) {
-			if (uiCallbacks.contains(callback)) {
-				return false;
-			}
-			uiCallbacks.add(callback);
-			return true;
-		}
-	}
-
-	/**
-	 * 删除UI回调
-	 *
-	 * @param callback 被删除的UI回调
-	 */
-	public void removeUICallback(BluetoothCallback callback) {
-		synchronized (uiCallbacks) {
-			uiCallbacks.remove(callback);
-		}
-	}
-
-	/**
-	 * <p>添加一个UI回调，不会添加重复项，如果尝试添加重复项则返回false</p>
-	 *
-	 * @param callback 被添加的UI回调
-	 * @return 如果添加成功则返回true
-	 */
-	public boolean addTaskCallback(BluetoothCallback callback) {
-		if (!bluetoothSupported) {
-			return false;
-		}
-		synchronized (taskCallbacks) {
-			if (taskCallbacks.contains(callback)) {
-				return false;
-			}
-			taskCallbacks.add(callback);
-			return true;
-		}
-	}
-
-	/**
-	 * 删除UI回调
-	 *
-	 * @param callback 被删除的UI回调
-	 */
-	public void removeTaskCallback(BluetoothCallback callback) {
-		synchronized (taskCallbacks) {
-			taskCallbacks.remove(callback);
-		}
-	}
-
-	/**
-	 * 通过回调通知事件
-	 *
-	 * @param event 被通知的事件
-	 */
-	private void sendActionCode(BluetoothEvent event) {
-		synchronized (taskCallbacks) {
-			for (int i = 0; i < taskCallbacks.size(); ++i) {
-				taskCallbacks.get(i).onBluetoothActionHappened(new BluetoothEvent(event));
-			}
-		}
-		/**
-		 * UICallback只提醒最后一个
-		 */
-		synchronized (uiCallbacks) {
-			int size = uiCallbacks.size();
-			if (size > 0) {
-				uiCallbacks.get(size - 1).onBluetoothActionHappened(event);
-			}
-		}
-	}
-
 	public boolean isBluetoothSupported() {
 		return bluetoothSupported;
 	}
@@ -161,21 +69,32 @@ public class BluetoothStateManager {
 			return;
 		}
 		if (bluetoothState == BluetoothAdapter.ERROR) {
-			sendActionCode(new BluetoothEvent(BluetoothEvent.BluetoothCode.STATE_ERROR_CODE));
+			CommonResponseManager.getInstance().sendResponse(new BluetoothStateEvent(
+					BluetoothStateEvent.BluetoothStateCode.BLUETOOTH_STATE_ERROR));
 			return;
 		}
 		bluetoothState = newState;
-		BluetoothEvent event = new BluetoothEvent(BluetoothEvent.BluetoothCode.STATE_CHANGED_CODE);
-		Bundle eventData = new Bundle();
-		eventData.putInt(BluetoothEvent.NEW_BLUETOOTH_STATE, bluetoothState);
-		event.setEventData(eventData);
-		sendActionCode(event);
+		BluetoothStateEvent event;
+		switch (bluetoothState) {
+			case BluetoothAdapter.STATE_ON:
+				event = new BluetoothStateEvent(BluetoothStateEvent.BluetoothStateCode.BLUETOOTH_STATE_ON);
+				break;
+			case BluetoothAdapter.STATE_OFF:
+				event = new BluetoothStateEvent(BluetoothStateEvent.BluetoothStateCode.BLUETOOTH_STATE_OFF);
+				break;
+			default:
+				event = null;
+				break;
+		}
+		if (event != null) {
+			CommonResponseManager.getInstance().sendResponse(event);
+		}
 	}
 
 	/**
 	 * <p>返回蓝牙的状态，可能是{@link BluetoothAdapter#getState()}的返回值</p>
 	 *
-	 * @return 如果返回{@link BluetoothAdapter#ERROR}，表示蓝牙功能异常，否则返回蓝牙状态
+	 * @return 如果返回{@link BluetoothAdapter#ERROR}，表示设备不支持蓝牙功能，否则返回蓝牙状态
 	 */
 	public int getBluetoothState() {
 		return bluetoothState;

@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 
-import cn.bit.hao.ble.tool.data.BLEDevice;
 import cn.bit.hao.ble.tool.manager.BluetoothGattManager;
 
 /**
@@ -33,6 +32,12 @@ public class CommunicationService extends Service {
 		}
 	}
 
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		bluetoothGattManager.removeAllGatts();
+	}
+
 	/**
 	 * 异步方法，向目标Characteristic发送数据
 	 *
@@ -43,10 +48,6 @@ public class CommunicationService extends Service {
 	}
 
 	public void readCharacteristic() {
-	}
-
-	public void parseResponse(BLEDevice device, byte[] response) {
-		device.parse(response);
 	}
 
 }

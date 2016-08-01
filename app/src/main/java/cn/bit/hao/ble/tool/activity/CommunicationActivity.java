@@ -11,23 +11,22 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
-import cn.bit.hao.ble.tool.interfaces.CommunicationResponseCallback;
-import cn.bit.hao.ble.tool.manager.CommunicationResponseManager;
+import cn.bit.hao.ble.tool.events.CommunicationResponseEvent;
+import cn.bit.hao.ble.tool.events.ResponseEvent;
 import cn.bit.hao.ble.tool.service.CommunicationService;
 
 
 /**
  * @author wuhao on 2016/7/14
  */
-public abstract class CommunicationActivity extends BaseActivity implements CommunicationResponseCallback {
+public abstract class CommunicationActivity extends BaseActivity {
 	private static final String TAG = CommunicationActivity.class.getSimpleName();
 
-	protected CommunicationService communicationService;
+	private CommunicationService communicationService;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		CommunicationResponseManager.getInstance().addUICallback(this);
 		bindCommunicationService();
 	}
 
@@ -70,20 +69,29 @@ public abstract class CommunicationActivity extends BaseActivity implements Comm
 	@Override
 	protected void onResume() {
 		super.onResume();
-		// 此后需要重新刷新UI才行，因为此前的状态变化没有接收到
-		CommunicationResponseManager.getInstance().setUINotification(true);
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		CommunicationResponseManager.getInstance().setUINotification(false);
 		if (isFinishing()) {
-			// 如果正在退出此Activity，那么应该结束此Activity的业务逻辑，即此后Activity不接收会导致UI变化的状态更新
-			// 如果在onDestory中再remove此Callback的话，会影响到后一个Callback的业务逻辑，所以必须尽早remove
 			unbindCommunicationService();
-			CommunicationResponseManager.getInstance().removeUICallback(this);
 		}
 	}
 
+	protected boolean writeCommand(String macAddress, byte[] command) {
+		if (communicationService == null) {
+			return false;
+		}
+		communicationService.writeCommand(macAddress, command);
+		return true;
+	}
+
+	@Override
+	public void onCommonResponded(ResponseEvent responseEvent) {
+		super.onCommonResponded(responseEvent);
+		if (responseEvent instanceof CommunicationResponseEvent) {
+
+		}
+	}
 }

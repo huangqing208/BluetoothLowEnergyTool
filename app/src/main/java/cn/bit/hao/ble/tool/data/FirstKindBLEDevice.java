@@ -4,7 +4,7 @@
 package cn.bit.hao.ble.tool.data;
 
 import cn.bit.hao.ble.tool.events.CommunicationResponseEvent;
-import cn.bit.hao.ble.tool.manager.CommunicationResponseManager;
+import cn.bit.hao.ble.tool.manager.CommonResponseManager;
 import cn.bit.hao.ble.tool.protocol.FirstKindBLEDeviceProtocol;
 
 /**
@@ -37,7 +37,7 @@ public class FirstKindBLEDevice extends BLEDevice {
 		}
 		this.sonValue = sonValue;
 		// 通知UIsonValue变化
-		CommunicationResponseManager.getInstance().sendResponse(new CommunicationResponseEvent(SON_VALUE_CODE));
+		CommonResponseManager.getInstance().sendResponse(new CommunicationResponseEvent(SON_VALUE_CODE));
 	}
 
 	@Override

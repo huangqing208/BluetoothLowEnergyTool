@@ -3,33 +3,35 @@
  */
 package cn.bit.hao.ble.tool.events;
 
-import android.os.Bundle;
-
 /**
+ * 通信中的返回事件，通常包含目标设备的mac地址和设备对象被关注的字段的代号
+ *
  * @author wuhao on 2016/7/30
  */
-public class CommunicationResponseEvent {
+public class CommunicationResponseEvent extends ResponseEvent {
 	private static final String TAG = CommunicationResponseEvent.class.getSimpleName();
 
-	public static final String DEVICE_MAC_ADDRESS = CommunicationResponseEvent.class.getCanonicalName() + ".DEVICE_MAC_ADDRESS";
-
 	public int eventCode;
-	private Bundle eventData;
 
 	public CommunicationResponseEvent(int eventCode) {
+		super();
 		this.eventCode = eventCode;
 	}
 
-	public CommunicationResponseEvent(CommunicationResponseEvent event) {
-		this.eventCode = event.eventCode;
-		this.eventData = event.eventData != null ? event.eventData : null;
+	public CommunicationResponseEvent(CommunicationResponseEvent communicationResponseEvent) {
+		super(communicationResponseEvent);
+		this.eventCode = communicationResponseEvent.eventCode;
 	}
 
-	public Bundle getEventData() {
-		return eventData;
-	}
-
-	public void setEventData(Bundle eventData) {
-		this.eventData = eventData;
+	@Override
+	public CommunicationResponseEvent clone() {
+		CommunicationResponseEvent result = null;
+		try {
+			result = (CommunicationResponseEvent) super.clone();
+			result.eventCode = this.eventCode;
+		} catch (ClassCastException e) {
+			e.printStackTrace();
+		}
+		return result;
 	}
 }
