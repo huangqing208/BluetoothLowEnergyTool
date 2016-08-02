@@ -17,7 +17,8 @@ public class CommunicationService extends Service {
 	private BluetoothGattManager bluetoothGattManager;
 
 	public CommunicationService() {
-		bluetoothGattManager = BluetoothGattManager.getInstance(this);
+		bluetoothGattManager = BluetoothGattManager.getInstance();
+		bluetoothGattManager.initContext(this);
 		localBinder = new LocalBinder();
 	}
 

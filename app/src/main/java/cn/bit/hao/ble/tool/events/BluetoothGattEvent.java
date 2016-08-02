@@ -11,7 +11,8 @@ public class BluetoothGattEvent extends ResponseEvent {
 
 	public enum BluetoothGattCode {
 		GATT_CONNECTED,
-		GATT_DISCONNECTED
+		GATT_DISCONNECTED,
+		GATT_CONNECT_TIMEOUT
 	}
 
 	public BluetoothGattCode eventCode;

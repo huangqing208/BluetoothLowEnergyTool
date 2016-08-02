@@ -21,30 +21,37 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 
 	@Override
 	public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+		BluetoothGattEvent bluetoothGattEvent;
 		if (status != BluetoothGatt.GATT_SUCCESS) {
-			return;
+			// 通常这是因为连接超时
+			BluetoothGattManager.getInstance().closeGatt(gatt.getDevice().getAddress(), true);
+			Log.w(TAG, gatt.getDevice().getAddress() + " onConnectionStateChange status: " + status + " newState: " + newState);
+			bluetoothGattEvent = new BluetoothGattEvent(BluetoothGattEvent.BluetoothGattCode.GATT_CONNECT_TIMEOUT);
+//			return;
+		} else {
+			switch (newState) {
+				case BluetoothGatt.STATE_CONNECTED: {
+					Log.i(TAG, gatt.getDevice().getAddress() + " onConnectionStateChange STATE_CONNECTED");
+					bluetoothGattEvent = new BluetoothGattEvent(BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTED);
+					break;
+				}
+				case BluetoothGatt.STATE_DISCONNECTED: {
+					Log.i(TAG, gatt.getDevice().getAddress() + " onConnectionStateChange STATE_DISCONNECTED");
+					bluetoothGattEvent = new BluetoothGattEvent(BluetoothGattEvent.BluetoothGattCode.GATT_DISCONNECTED);
+					break;
+				}
+				default:
+					Log.i(TAG, gatt.getDevice().getAddress() + " onConnectionStateChange ooh no");
+					bluetoothGattEvent = null;
+					super.onConnectionStateChange(gatt, status, newState);
+					break;
+			}
 		}
-		Log.i(TAG, gatt.getDevice().getAddress() + " onConnectionStateChange newState: " + newState);
-		switch (newState) {
-			case BluetoothGatt.STATE_CONNECTED: {
-				BluetoothGattEvent bluetoothGattEvent = new BluetoothGattEvent(BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTED);
-				Bundle eventData = new Bundle();
-				eventData.putString(ResponseEvent.EXTRA_DEVICE_MAC_ADDRESS, gatt.getDevice().getAddress());
-				bluetoothGattEvent.setEventData(eventData);
-				CommonResponseManager.getInstance().sendResponse(bluetoothGattEvent);
-				break;
-			}
-			case BluetoothGatt.STATE_DISCONNECTED: {
-				BluetoothGattEvent bluetoothGattEvent = new BluetoothGattEvent(BluetoothGattEvent.BluetoothGattCode.GATT_DISCONNECTED);
-				Bundle eventData = new Bundle();
-				eventData.putString(ResponseEvent.EXTRA_DEVICE_MAC_ADDRESS, gatt.getDevice().getAddress());
-				bluetoothGattEvent.setEventData(eventData);
-				CommonResponseManager.getInstance().sendResponse(bluetoothGattEvent);
-				break;
-			}
-			default:
-				super.onConnectionStateChange(gatt, status, newState);
-				break;
+		if (bluetoothGattEvent != null) {
+			Bundle eventData = new Bundle();
+			eventData.putString(ResponseEvent.EXTRA_DEVICE_MAC_ADDRESS, gatt.getDevice().getAddress());
+			bluetoothGattEvent.setEventData(eventData);
+			CommonResponseManager.getInstance().sendResponse(bluetoothGattEvent);
 		}
 	}
 

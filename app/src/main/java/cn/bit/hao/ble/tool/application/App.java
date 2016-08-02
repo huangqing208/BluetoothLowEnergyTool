@@ -22,4 +22,9 @@ public class App extends Application {
 		Log.i(TAG, "Application onCreate");
 		startService(new Intent(this, MonitorConnectivityService.class));
 	}
+
+	public void exitApp() {
+		stopService(new Intent(this, MonitorConnectivityService.class));
+		System.exit(0);
+	}
 }

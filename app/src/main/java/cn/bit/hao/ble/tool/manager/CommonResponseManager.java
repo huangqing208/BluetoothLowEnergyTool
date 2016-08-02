@@ -63,16 +63,23 @@ public class CommonResponseManager {
 		}
 	}
 
+	public void removeAllCallbacks() {
+		taskCallbacks.clear();
+		uiCallbacks.clear();
+	}
+
 	private boolean notifyUI = false;
 
 	public void setUINotification(boolean notification) {
 		notifyUI = notification;
 	}
 
-	public void sendResponse(ResponseEvent responseEvent) {
+	public boolean sendResponse(ResponseEvent responseEvent) {
+		boolean sendout = false;
 		synchronized (taskCallbacks) {
 			for (int i = 0; i < taskCallbacks.size(); ++i) {
 				taskCallbacks.get(i).onCommonResponded(responseEvent.clone());
+				sendout = true;
 			}
 		}
 		/**
@@ -83,9 +90,11 @@ public class CommonResponseManager {
 				int size = uiCallbacks.size();
 				if (size > 0) {
 					uiCallbacks.get(size - 1).onCommonResponded(responseEvent);
+					sendout = true;
 				}
 			}
 		}
+		return sendout;
 	}
 
 }

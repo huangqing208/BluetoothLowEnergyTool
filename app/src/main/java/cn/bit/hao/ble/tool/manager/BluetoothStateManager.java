@@ -44,7 +44,7 @@ public class BluetoothStateManager {
 	 * @return 如果设备不支持蓝牙，则返回false
 	 */
 	private boolean initBluetoothState(Context context) {
-		BluetoothAdapter bluetoothAdapter = BluetoothUtil.getBluetoothAdapter(context);
+		BluetoothAdapter bluetoothAdapter = BluetoothUtil.getBluetoothAdapter(context.getApplicationContext());
 		if (bluetoothAdapter == null) {
 			// Toast.makeText(SystemStateService.this, "Bluetooth not supported!", Toast.LENGTH_SHORT).show();
 			this.bluetoothSupported = false;
@@ -62,13 +62,13 @@ public class BluetoothStateManager {
 	 * 当{@link cn.bit.hao.ble.tool.service.MonitorConnectivityService}监听到状态变化时，调用此方法修改状态。
 	 * 而本Manager则会将此事件通知到各个注册着的回调函数
 	 *
-	 * @param newState
+	 * @param newState 新的蓝牙状态
 	 */
 	public void setBluetoothState(int newState) {
 		if (bluetoothState == newState) {
 			return;
 		}
-		if (bluetoothState == BluetoothAdapter.ERROR) {
+		if (newState == BluetoothAdapter.ERROR) {
 			CommonResponseManager.getInstance().sendResponse(new BluetoothStateEvent(
 					BluetoothStateEvent.BluetoothStateCode.BLUETOOTH_STATE_ERROR));
 			return;

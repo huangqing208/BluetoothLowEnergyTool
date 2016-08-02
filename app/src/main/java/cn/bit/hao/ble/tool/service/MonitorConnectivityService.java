@@ -64,7 +64,7 @@ public class MonitorConnectivityService extends Service {
 			final int newState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
 			BluetoothStateManager.getInstance(MonitorConnectivityService.this).setBluetoothState(newState);
 
-			// 以下为可配置选项，默认由此Service维护蓝牙重启，也可以禁用此处的功能，在BluetoothCallback回调时在考虑是否重启
+			// 以下为可配置选项，默认由此Service维护蓝牙重启，也可以禁用此处的功能，在BluetoothCallback回调时再考虑是否重启
 			if (newState == BluetoothAdapter.STATE_OFF) {
 				// request for enabling bluetooth
 				Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);

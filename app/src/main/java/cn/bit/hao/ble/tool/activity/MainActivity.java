@@ -3,6 +3,7 @@ package cn.bit.hao.ble.tool.activity;
 import android.os.Bundle;
 
 import cn.bit.hao.ble.tool.R;
+import cn.bit.hao.ble.tool.events.ResponseEvent;
 
 public class MainActivity extends CommunicationActivity {
 
@@ -18,7 +19,7 @@ public class MainActivity extends CommunicationActivity {
 	}
 
 	@Override
-	public void onCommunicationResponded(int fieldCode) {
-
+	public void onCommonResponded(ResponseEvent responseEvent) {
+		super.onCommonResponded(responseEvent);
 	}
 }
