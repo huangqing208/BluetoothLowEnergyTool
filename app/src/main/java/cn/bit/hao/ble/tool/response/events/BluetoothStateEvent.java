@@ -1,12 +1,12 @@
 /**
  * Copyright (c) www.bugull.com
  */
-package cn.bit.hao.ble.tool.events;
+package cn.bit.hao.ble.tool.response.events;
 
 /**
  * @author wuhao on 2016/7/30
  */
-public class BluetoothStateEvent extends ResponseEvent {
+public class BluetoothStateEvent extends CommonResponseEvent {
 	private static final String TAG = BluetoothStateEvent.class.getSimpleName();
 
 	public enum BluetoothStateCode {
@@ -15,16 +15,22 @@ public class BluetoothStateEvent extends ResponseEvent {
 		BLUETOOTH_STATE_ERROR
 	}
 
-	public BluetoothStateCode eventCode;
+	private BluetoothStateCode eventCode;
 
 	public BluetoothStateEvent(BluetoothStateCode eventCode) {
-		super();
 		this.eventCode = eventCode;
 	}
 
 	public BluetoothStateEvent(BluetoothStateEvent bluetoothStateEvent) {
-		super(bluetoothStateEvent);
 		this.eventCode = bluetoothStateEvent.eventCode;
+	}
+
+	public BluetoothStateCode getEventCode() {
+		return eventCode;
+	}
+
+	public void setEventCode(BluetoothStateCode eventCode) {
+		this.eventCode = eventCode;
 	}
 
 	@Override
@@ -37,5 +43,12 @@ public class BluetoothStateEvent extends ResponseEvent {
 			e.printStackTrace();
 		}
 		return result;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("eventCode: ").append(eventCode == null ? "null" : eventCode);
+		return sb.toString();
 	}
 }

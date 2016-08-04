@@ -1,7 +1,9 @@
 /**
  * Copyright (c) www.bugull.com
  */
-package cn.bit.hao.ble.tool.protocol;
+package cn.bit.hao.ble.tool.protocol.bluetooth;
+
+import cn.bit.hao.ble.tool.protocol.GeneralProtocol;
 
 /**
  * @author wuhao on 2016/7/15

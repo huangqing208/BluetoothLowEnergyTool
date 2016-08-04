@@ -1,11 +1,9 @@
-package cn.bit.hao.ble.tool.service;
+package cn.bit.hao.ble.tool.bluetooth.gatt.communication;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-
-import cn.bit.hao.ble.tool.manager.BluetoothGattManager;
 
 /**
  * 此Service是用于通信的后台Service，负责处理来自UI的通信请求
@@ -14,11 +12,8 @@ public class CommunicationService extends Service {
 	private static final String TAG = CommunicationService.class.getSimpleName();
 
 	private LocalBinder localBinder;
-	private BluetoothGattManager bluetoothGattManager;
 
 	public CommunicationService() {
-		bluetoothGattManager = BluetoothGattManager.getInstance();
-		bluetoothGattManager.initContext(this);
 		localBinder = new LocalBinder();
 	}
 
@@ -36,7 +31,6 @@ public class CommunicationService extends Service {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		bluetoothGattManager.removeAllGatts();
 	}
 
 	/**

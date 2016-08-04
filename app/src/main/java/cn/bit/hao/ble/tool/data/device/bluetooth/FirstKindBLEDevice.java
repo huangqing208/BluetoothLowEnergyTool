@@ -1,18 +1,18 @@
 /**
  * Copyright (c) www.bugull.com
  */
-package cn.bit.hao.ble.tool.data;
+package cn.bit.hao.ble.tool.data.device.bluetooth;
 
-import cn.bit.hao.ble.tool.events.CommunicationResponseEvent;
-import cn.bit.hao.ble.tool.manager.CommonResponseManager;
-import cn.bit.hao.ble.tool.protocol.FirstKindBLEDeviceProtocol;
+import cn.bit.hao.ble.tool.response.events.CommunicationResponseEvent;
+import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
+import cn.bit.hao.ble.tool.protocol.bluetooth.FirstKindBLEDeviceProtocol;
 
 /**
  * @author wuhao on 2016/7/14
  */
 public class FirstKindBLEDevice extends BLEDevice {
 
-	protected static final int FIELD_CHANGED_BASE = BLEDevice.RESPONSE_CODE_BASE + 0x00100000;
+	protected static final int FIELD_CHANGED_BASE = RESPONSE_CODE_BASE + 0x00100000;
 
 	private static final String DEFAULT_NAME = "MainActivityData";
 
@@ -37,7 +37,7 @@ public class FirstKindBLEDevice extends BLEDevice {
 		}
 		this.sonValue = sonValue;
 		// 通知UIsonValue变化
-		CommonResponseManager.getInstance().sendResponse(new CommunicationResponseEvent(SON_VALUE_CODE));
+		CommonResponseManager.getInstance().sendResponse(new CommunicationResponseEvent(macAddress, SON_VALUE_CODE));
 	}
 
 	@Override

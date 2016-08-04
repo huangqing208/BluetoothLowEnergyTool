@@ -11,16 +11,18 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
-import cn.bit.hao.ble.tool.events.CommunicationResponseEvent;
-import cn.bit.hao.ble.tool.events.ResponseEvent;
-import cn.bit.hao.ble.tool.service.CommunicationService;
-
+import cn.bit.hao.ble.tool.bluetooth.gatt.communication.CommunicationService;
+import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.events.CommunicationResponseEvent;
 
 /**
+ * 此Activity是做Gatt通信的Activity的父类，保障子类的通信功能。
+ * 注意：需根据不同项目要求做定制化调整。
+ *
  * @author wuhao on 2016/7/14
  */
-public abstract class CommunicationActivity extends BaseActivity {
-	private static final String TAG = CommunicationActivity.class.getSimpleName();
+public abstract class GattCommunicationActivity extends BaseActivity {
+	private static final String TAG = GattCommunicationActivity.class.getSimpleName();
 
 	private CommunicationService communicationService;
 
@@ -88,9 +90,9 @@ public abstract class CommunicationActivity extends BaseActivity {
 	}
 
 	@Override
-	public void onCommonResponded(ResponseEvent responseEvent) {
-		super.onCommonResponded(responseEvent);
-		if (responseEvent instanceof CommunicationResponseEvent) {
+	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
+		super.onCommonResponded(commonResponseEvent);
+		if (commonResponseEvent instanceof CommunicationResponseEvent) {
 
 		}
 	}

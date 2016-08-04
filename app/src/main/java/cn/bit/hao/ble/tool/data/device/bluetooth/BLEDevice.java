@@ -1,16 +1,14 @@
 /**
  * Copyright (c) www.bugull.com
  */
-package cn.bit.hao.ble.tool.data;
+package cn.bit.hao.ble.tool.data.device.bluetooth;
 
-
-import android.os.Bundle;
 
 import cn.bit.hao.ble.tool.application.Constants;
-import cn.bit.hao.ble.tool.events.CommunicationResponseEvent;
-import cn.bit.hao.ble.tool.manager.CommonResponseManager;
-import cn.bit.hao.ble.tool.protocol.FirstKindBLEDeviceProtocol;
 import cn.bit.hao.ble.tool.protocol.GeneralProtocol;
+import cn.bit.hao.ble.tool.protocol.bluetooth.FirstKindBLEDeviceProtocol;
+import cn.bit.hao.ble.tool.response.events.CommunicationResponseEvent;
+import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
 
 /**
  * @author wuhao on 2016/7/14
@@ -48,10 +46,7 @@ public abstract class BLEDevice {
 		}
 		this.friendlyName = friendlyName;
 		// 每变化一个状态则发出一次通知，所以，一次返回有可能有多次通知
-		CommunicationResponseEvent responseEvent = new CommunicationResponseEvent(FRIENDLY_NAME_CODE);
-		Bundle eventData = new Bundle();
-		eventData.putString(CommunicationResponseEvent.EXTRA_DEVICE_MAC_ADDRESS, macAddress);
-		responseEvent.setEventData(eventData);
+		CommunicationResponseEvent responseEvent = new CommunicationResponseEvent(macAddress, FRIENDLY_NAME_CODE);
 		CommonResponseManager.getInstance().sendResponse(responseEvent);
 	}
 

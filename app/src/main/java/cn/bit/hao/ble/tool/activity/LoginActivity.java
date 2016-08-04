@@ -31,14 +31,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.bit.hao.ble.tool.R;
-import cn.bit.hao.ble.tool.manager.BluetoothGattManager;
+import cn.bit.hao.ble.tool.bluetooth.gatt.BluetoothGattManager;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends CommunicationActivity implements LoaderCallbacks<Cursor> {
+public class LoginActivity extends GattCommunicationActivity implements LoaderCallbacks<Cursor> {
 	private static final String TAG = LoginActivity.class.getSimpleName();
 
 	/**
@@ -102,7 +102,17 @@ public class LoginActivity extends CommunicationActivity implements LoaderCallba
 
 	@Override
 	protected void onCommunicationServiceBound() {
+//		BluetoothGattManager.getInstance().connectDevice("02:02:5B:00:25:13");
 		BluetoothGattManager.getInstance().connectDevice("00:02:5B:00:25:13");
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if (isFinishing()) {
+//			App.getInstance().exitApp();
+			BluetoothGattManager.getInstance().disconnectGatt("00:02:5B:00:25:13");
+		}
 	}
 
 	private void populateAutoComplete() {

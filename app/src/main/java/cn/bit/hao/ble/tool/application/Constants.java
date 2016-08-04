@@ -9,6 +9,5 @@ package cn.bit.hao.ble.tool.application;
 public class Constants {
 
 	public static final int FIELD_UPDATE_CODE_BASE = 0x10000000;
-	public static final int STATE_UPDATE_CODE_BASE = 0x20000000;
 
 }

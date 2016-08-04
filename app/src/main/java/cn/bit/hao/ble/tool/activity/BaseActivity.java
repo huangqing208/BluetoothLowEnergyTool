@@ -8,13 +8,17 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
-import cn.bit.hao.ble.tool.callbacks.CommonResponseCallback;
-import cn.bit.hao.ble.tool.events.BluetoothStateEvent;
-import cn.bit.hao.ble.tool.events.ResponseEvent;
-import cn.bit.hao.ble.tool.manager.BluetoothStateManager;
-import cn.bit.hao.ble.tool.manager.CommonResponseManager;
+import cn.bit.hao.ble.tool.bluetooth.state.BluetoothStateManager;
+import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUtil;
+import cn.bit.hao.ble.tool.response.callbacks.CommonResponseCallback;
+import cn.bit.hao.ble.tool.response.events.BluetoothStateEvent;
+import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
 
 /**
+ * 此类为所有Activity的基类，保障所有Activity需要实现的功能。
+ * 注意：需根据不同项目要求做定制化调整。
+ *
  * @author wuhao on 2016/7/16
  */
 public abstract class BaseActivity extends AppCompatActivity implements CommonResponseCallback {
@@ -39,8 +43,10 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 	 * 按需可在onCreate或onResume调用此方法
 	 */
 	private void refreshBluetoothState() {
-		if (!BluetoothStateManager.getInstance(this).isBluetoothSupported()) {
+		if (!BluetoothStateManager.getInstance().isBluetoothSupported()) {
 			showDialog("Not support!");
+		} else if (!BluetoothStateManager.getInstance().isBluetoothEnabled()) {
+			BluetoothUtil.requestBluetooth(this);
 		}
 	}
 
@@ -56,9 +62,9 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 	}
 
 	@Override
-	public void onCommonResponded(ResponseEvent responseEvent) {
-		if (responseEvent instanceof BluetoothStateEvent) {
-			switch (((BluetoothStateEvent) responseEvent).eventCode) {
+	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
+		if (commonResponseEvent instanceof BluetoothStateEvent) {
+			switch (((BluetoothStateEvent) commonResponseEvent).getEventCode()) {
 				case BLUETOOTH_STATE_OFF: {
 					// if bluetooth is off, show some info
 

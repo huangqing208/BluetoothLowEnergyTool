@@ -6,6 +6,8 @@ package cn.bit.hao.ble.tool.data;
 import java.util.HashMap;
 import java.util.Map;
 
+import cn.bit.hao.ble.tool.data.device.bluetooth.BLEDevice;
+
 /**
  * @author wuhao on 2016/7/14
  */
@@ -26,11 +28,7 @@ public class DeviceStore {
 		return instance;
 	}
 
-	public BLEDevice getDevice(String macAddress) {
-		return bleDeviceMap.get(macAddress);
-	}
-
-	public boolean addDevice(BLEDevice BLEDevice) {
+	public synchronized boolean addDevice(BLEDevice BLEDevice) {
 		if (bleDeviceMap.containsKey(BLEDevice.getMacAddress())) {
 			return false;
 		}
@@ -40,7 +38,11 @@ public class DeviceStore {
 		return true;
 	}
 
-	public boolean removeDevice(String macAddress) {
+	public BLEDevice getDevice(String macAddress) {
+		return bleDeviceMap.get(macAddress);
+	}
+
+	public synchronized boolean removeDevice(String macAddress) {
 		BLEDevice bleDevice = bleDeviceMap.remove(macAddress);
 		if (bleDevice == null) {
 			return false;
@@ -50,4 +52,12 @@ public class DeviceStore {
 		return true;
 	}
 
+	public boolean parseResponse(String macAddress, byte[] response) {
+		BLEDevice device = getDevice(macAddress);
+		if (device == null) {
+			return false;
+		}
+		device.parse(response);
+		return true;
+	}
 }
