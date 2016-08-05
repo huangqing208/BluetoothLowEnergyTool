@@ -8,8 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
 
-import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUtil;
-
 /**
  * 此Service用于监听设备蓝牙开关状态，也可以按需添加其他状态监听
  */
@@ -55,11 +53,6 @@ public class MonitorBluetoothStateService extends Service {
 
 			final int newState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
 			BluetoothStateManager.getInstance().setBluetoothState(newState);
-
-			// TODO: 以下为可配置选项，默认由此Service维护蓝牙重启，也可以禁用此处的功能，在BluetoothCallback回调时再考虑是否重启
-			if (newState == BluetoothAdapter.STATE_OFF) {
-				BluetoothUtil.requestBluetooth(MonitorBluetoothStateService.this);
-			}
 		}
 	}
 

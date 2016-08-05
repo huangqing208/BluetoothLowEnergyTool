@@ -6,7 +6,7 @@ package cn.bit.hao.ble.tool.application;
 import android.app.Application;
 import android.util.Log;
 
-import cn.bit.hao.ble.tool.bluetooth.discovery.BluetoothLeScanManager;
+import cn.bit.hao.ble.tool.bluetooth.scan.BluetoothLeScanManager;
 import cn.bit.hao.ble.tool.bluetooth.gatt.BluetoothGattManager;
 import cn.bit.hao.ble.tool.bluetooth.state.BluetoothStateManager;
 

@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -31,7 +32,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.bit.hao.ble.tool.R;
-import cn.bit.hao.ble.tool.bluetooth.gatt.BluetoothGattManager;
+import cn.bit.hao.ble.tool.bluetooth.scan.BluetoothLeScanManager;
+import cn.bit.hao.ble.tool.response.events.BluetoothLeScanEvent;
+import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -63,6 +66,7 @@ public class LoginActivity extends GattCommunicationActivity implements LoaderCa
 	private EditText mPasswordView;
 	private View mProgressView;
 	private View mLoginFormView;
+	private TextView mLog;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -92,26 +96,42 @@ public class LoginActivity extends GattCommunicationActivity implements LoaderCa
 		mEmailSignInButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				attemptLogin();
+				startActivity(new Intent(LoginActivity.this, MainActivity.class));
+//				attemptLogin();
 			}
 		});
 
 		mLoginFormView = findViewById(R.id.login_form);
 		mProgressView = findViewById(R.id.login_progress);
+
+		mLog = (TextView) findViewById(R.id.log);
+
+		BluetoothLeScanManager.getInstance().startLeScan();
+//		BluetoothGattManager.getInstance().connectDevice("02:02:5B:00:25:13");
+//		BluetoothGattManager.getInstance().connectDevice("00:02:5B:00:25:13");
 	}
 
 	@Override
 	protected void onCommunicationServiceBound() {
-//		BluetoothGattManager.getInstance().connectDevice("02:02:5B:00:25:13");
-		BluetoothGattManager.getInstance().connectDevice("00:02:5B:00:25:13");
+	}
+
+	private int count;
+
+	@Override
+	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
+		super.onCommonResponded(commonResponseEvent);
+		if (commonResponseEvent instanceof BluetoothLeScanEvent) {
+			mLog.setText("Count: " + ++count + "\n" + commonResponseEvent.toString());
+		}
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
 		if (isFinishing()) {
+			BluetoothLeScanManager.getInstance().stopLeScan();
 //			App.getInstance().exitApp();
-			BluetoothGattManager.getInstance().disconnectGatt("00:02:5B:00:25:13");
+//			BluetoothGattManager.getInstance().disconnectGatt("00:02:5B:00:25:13");
 		}
 	}
 

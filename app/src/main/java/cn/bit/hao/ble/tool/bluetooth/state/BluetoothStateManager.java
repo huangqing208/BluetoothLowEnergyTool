@@ -108,22 +108,27 @@ public class BluetoothStateManager {
 	 *
 	 * @param newState 新的蓝牙状态
 	 */
-	public void setBluetoothState(int newState) {
+	public synchronized void setBluetoothState(int newState) {
 		if (bluetoothState == newState) {
 			return;
 		}
+		bluetoothState = newState;
 		if (newState == BluetoothAdapter.ERROR) {
 			CommonResponseManager.getInstance().sendResponse(new BluetoothStateEvent(
 					BluetoothStateEvent.BluetoothStateCode.BLUETOOTH_STATE_ERROR));
 			return;
 		}
-		bluetoothState = newState;
 		BluetoothStateEvent event;
 		switch (bluetoothState) {
 			case BluetoothAdapter.STATE_ON:
 				event = new BluetoothStateEvent(BluetoothStateEvent.BluetoothStateCode.BLUETOOTH_STATE_ON);
 				break;
 			case BluetoothAdapter.STATE_OFF:
+				// TODO: 以下为可配置选项，默认由此Service维护蓝牙重启，也可以禁用此处的功能，在BluetoothCallback回调时再考虑是否重启
+				Context context = getContext();
+				if (context != null) {
+					BluetoothUtil.requestBluetooth(context);
+				}
 				event = new BluetoothStateEvent(BluetoothStateEvent.BluetoothStateCode.BLUETOOTH_STATE_OFF);
 				break;
 			default:

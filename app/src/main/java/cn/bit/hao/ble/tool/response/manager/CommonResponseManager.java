@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.bit.hao.ble.tool.response.callbacks.CommonResponseCallback;
+import cn.bit.hao.ble.tool.response.events.BluetoothLeScanEvent;
 import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
 
 
@@ -22,8 +23,10 @@ import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
 public class CommonResponseManager {
 	private static final String TAG = CommonResponseManager.class.getSimpleName();
 
-	private List<CommonResponseCallback> uiCallbacks;
-	private List<CommonResponseCallback> taskCallbacks;
+	private final List<CommonResponseCallback> uiCallbacks;
+	private final List<CommonResponseCallback> taskCallbacks;
+
+	private boolean notifyUI = false;
 
 	private Handler mHandler;
 
@@ -40,6 +43,31 @@ public class CommonResponseManager {
 			instance = new CommonResponseManager();
 		}
 		return instance;
+	}
+
+	/**
+	 * 指定一个被通知的回调对象，按照添加时顺序，在此对象添加之后添加的回调对象会被删除，即不再接收回调。
+	 * 如果commonResponseCallback为null的话，表示禁用UI回调功能。
+	 *
+	 * @param commonResponseCallback 需要通知到的UI回调对象
+	 */
+	public void setUINotification(CommonResponseCallback commonResponseCallback) {
+		synchronized (uiCallbacks) {
+			if (!uiCallbacks.contains(commonResponseCallback)) {
+				return;
+			}
+			notifyUI = commonResponseCallback != null;
+			if (!notifyUI) {
+				return;
+			}
+			for (int i = uiCallbacks.size() - 1; i >= 0; --i) {
+				if (uiCallbacks.get(i).equals(commonResponseCallback)) {
+					break;
+				} else {
+					uiCallbacks.remove(i);
+				}
+			}
+		}
 	}
 
 	public boolean addUICallback(CommonResponseCallback callback) {
@@ -74,37 +102,36 @@ public class CommonResponseManager {
 		}
 	}
 
-	private boolean notifyUI = false;
-
-	public synchronized void setUINotification(boolean notification) {
-		notifyUI = notification;
-	}
-
-	public boolean sendResponse(final CommonResponseEvent commonResponseEvent) {
-		Log.i(TAG, commonResponseEvent.toString());
+	/**
+	 * 此方法可以将消息会调给目标对象
+	 *
+	 * @param commonResponseEvent 被通知到的消息
+	 */
+	public void sendResponse(final CommonResponseEvent commonResponseEvent) {
+		if (!(commonResponseEvent instanceof BluetoothLeScanEvent)) {
+			Log.i(TAG, commonResponseEvent.toString());
+		}
 		synchronized (taskCallbacks) {
 			for (int i = 0; i < taskCallbacks.size(); ++i) {
 				taskCallbacks.get(i).onCommonResponded(commonResponseEvent.clone());
 			}
 		}
-		synchronized (this) {
-			if (notifyUI) {
+		// UI接收的话必须在主线程，如果是业务逻辑的话，无所谓
+		mHandler.post(new Runnable() {
+			@Override
+			public void run() {
 				synchronized (uiCallbacks) {
-					final int size = uiCallbacks.size();
+					if (!notifyUI) {
+						return;
+					}
+					int size = uiCallbacks.size();
 					if (size > 0) {
-						// UI接收的话必须在主线程，如果是业务逻辑的话，无所谓
-						mHandler.post(new Runnable() {
-							@Override
-							public void run() {
-								// UICallback只提醒最后一个
-								uiCallbacks.get(size - 1).onCommonResponded(commonResponseEvent);
-							}
-						});
+						// UICallback只提醒最后一个
+						uiCallbacks.get(size - 1).onCommonResponded(commonResponseEvent);
 					}
 				}
 			}
-		}
-		return taskCallbacks.size() > 0 || uiCallbacks.size() > 0;
+		});
 	}
 
 }

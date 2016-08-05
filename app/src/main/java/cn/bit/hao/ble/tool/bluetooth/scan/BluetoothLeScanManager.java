@@ -1,7 +1,7 @@
 /**
  * Copyright (c) www.bugull.com
  */
-package cn.bit.hao.ble.tool.bluetooth.discovery;
+package cn.bit.hao.ble.tool.bluetooth.scan;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.BluetoothLeScanner;
@@ -34,8 +34,11 @@ public class BluetoothLeScanManager implements CommonResponseCallback {
 	private ScanCallbackImpl scanCallback;
 
 	private BluetoothLeScanManager() {
-		leScanCallback = new LeScanCallbackImpl();
-		scanCallback = new ScanCallbackImpl();
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+			leScanCallback = new LeScanCallbackImpl();
+		} else {
+			scanCallback = new ScanCallbackImpl();
+		}
 	}
 
 	public static synchronized BluetoothLeScanManager getInstance() {
@@ -65,6 +68,11 @@ public class BluetoothLeScanManager implements CommonResponseCallback {
 	}
 
 	public void finish() {
+		if (isLeScanning) {
+			// 必须停止搜索
+			stopLeScan();
+//			isLeScanning = false;
+		}
 		CommonResponseManager.getInstance().removeTaskCallback(this);
 		applicationContext = null;
 	}
@@ -75,6 +83,11 @@ public class BluetoothLeScanManager implements CommonResponseCallback {
 				: applicationContext.get();
 	}
 
+	/**
+	 * 开启Le搜索
+	 *
+	 * @return 如果在搜索的话返回true，否则返回false
+	 */
 	public synchronized boolean startLeScan() {
 		if (!BluetoothStateManager.getInstance().isBluetoothEnabled()) {
 			return false;
@@ -87,6 +100,10 @@ public class BluetoothLeScanManager implements CommonResponseCallback {
 		if (bluetoothAdapter == null) {
 			return false;
 		}
+		if (isLeScanning) {
+			// 在stopLeScan前不允许重复startLeScan避免触发SCAN_FAILED_ALREADY_STARTED
+			return true;
+		}
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
 			isLeScanning = bluetoothAdapter.startLeScan(leScanCallback);
 		} else {
@@ -95,32 +112,42 @@ public class BluetoothLeScanManager implements CommonResponseCallback {
 				ScanSettings settings = new ScanSettings.Builder()
 						.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
 				bluetoothLeScanner.startScan(null, settings, scanCallback);
+				// TODO: assume that perform successful if no ScanFiledEvent is occurring
+				isLeScanning = true;
 			}
 		}
-		return true;
+		if (isLeScanning) {
+			// 无法检测是否真的start成功，所以最好做应用层超时检测
+			// TODO: wait for 20s, if no result, ask for reset bluetooth
+		}
+		return isLeScanning;
 	}
 
-	public synchronized boolean stopLeScan() {
+	/**
+	 * 停止Le搜索
+	 */
+	public synchronized void stopLeScan() {
 		if (!BluetoothStateManager.getInstance().isBluetoothEnabled()) {
-			return false;
+			return;
 		}
 		Context context = getContext();
 		if (context == null) {
-			return false;
+			return;
 		}
 		BluetoothAdapter bluetoothAdapter = BluetoothUtil.getBluetoothAdapter(context);
 		if (bluetoothAdapter == null) {
-			return false;
+			return;
 		}
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
 			bluetoothAdapter.stopLeScan(leScanCallback);
+			isLeScanning = false;
 		} else {
 			BluetoothLeScanner bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
 			if (bluetoothLeScanner != null) {
 				bluetoothLeScanner.stopScan(scanCallback);
+				isLeScanning = false;
 			}
 		}
-		return true;
 	}
 
 	@Override
@@ -128,9 +155,14 @@ public class BluetoothLeScanManager implements CommonResponseCallback {
 		if (commonResponseEvent instanceof BluetoothStateEvent) {
 			switch (((BluetoothStateEvent) commonResponseEvent).getEventCode()) {
 				case BLUETOOTH_STATE_ON:
+					if (isLeScanning) {
+						// 如果此前isLeScanning为true，表示之前是在搜索中的，那么这里得重新搜索，即终止上次搜索，再开始新搜索
+						stopLeScan();
+						startLeScan();
+					}
 					break;
 				case BLUETOOTH_STATE_OFF:
-					// just pause, can't stop now, and can't resume self
+					// when bluetooth off, scan is passively stopped
 					break;
 				case BLUETOOTH_STATE_ERROR:
 					break;
