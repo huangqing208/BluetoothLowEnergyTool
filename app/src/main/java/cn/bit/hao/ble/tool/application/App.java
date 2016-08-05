@@ -36,7 +36,6 @@ public class App extends Application {
 			BluetoothStateManager.getInstance().initManager(this);
 			BluetoothLeScanManager.getInstance().initManager(this);
 			BluetoothGattManager.getInstance().initManager(this);
-
 		}
 	}
 
@@ -47,7 +46,6 @@ public class App extends Application {
 			BluetoothStateManager.getInstance().finish();
 
 			instance = null;
-
 			// maybe some delay here, or not?
 			System.exit(0);
 		}

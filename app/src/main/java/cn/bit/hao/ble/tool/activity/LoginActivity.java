@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.bit.hao.ble.tool.R;
+import cn.bit.hao.ble.tool.application.App;
 import cn.bit.hao.ble.tool.bluetooth.scan.BluetoothLeScanManager;
 import cn.bit.hao.ble.tool.response.events.BluetoothLeScanEvent;
 import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
@@ -130,7 +131,7 @@ public class LoginActivity extends GattCommunicationActivity implements LoaderCa
 		super.onPause();
 		if (isFinishing()) {
 			BluetoothLeScanManager.getInstance().stopLeScan();
-//			App.getInstance().exitApp();
+			App.getInstance().exitApp();
 //			BluetoothGattManager.getInstance().disconnectGatt("00:02:5B:00:25:13");
 		}
 	}
