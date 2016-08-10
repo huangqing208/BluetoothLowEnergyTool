@@ -1,9 +1,11 @@
 /**
  * Copyright (c) www.bugull.com
  */
-package cn.bit.hao.ble.tool.bluetooth.utils;
+package cn.bit.hao.ble.tool.util;
 
 /**
+ * 还有许多现成方法见{@link java.util.Arrays}和{@link java.util.Collections}
+ *
  * @author wuhao on 2016/8/5
  */
 public class ByteBitUtil {

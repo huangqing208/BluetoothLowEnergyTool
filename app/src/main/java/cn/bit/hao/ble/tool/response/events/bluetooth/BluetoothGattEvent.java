@@ -1,7 +1,9 @@
 /**
  * Copyright (c) www.bugull.com
  */
-package cn.bit.hao.ble.tool.response.events;
+package cn.bit.hao.ble.tool.response.events.bluetooth;
+
+import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
 
 /**
  * @author wuhao on 2016/8/1
@@ -14,7 +16,8 @@ public class BluetoothGattEvent extends CommonResponseEvent {
 		GATT_DISCONNECTED,
 		GATT_CONNECT_TIMEOUT,
 		GATT_REMOTE_DISAPPEARED,
-		GATT_CONNECTION_ERROR
+		GATT_CONNECTION_ERROR,
+		GATT_SERVICES_DISCOVERED
 	}
 
 	private BluetoothGattCode eventCode;
@@ -44,19 +47,6 @@ public class BluetoothGattEvent extends CommonResponseEvent {
 
 	public void setMacAddress(String macAddress) {
 		this.macAddress = macAddress;
-	}
-
-	@Override
-	public BluetoothGattEvent clone() {
-		BluetoothGattEvent result = null;
-		try {
-			result = (BluetoothGattEvent) super.clone();
-			result.eventCode = this.eventCode;
-			result.macAddress = this.macAddress;
-		} catch (ClassCastException e) {
-			e.printStackTrace();
-		}
-		return result;
 	}
 
 	@Override

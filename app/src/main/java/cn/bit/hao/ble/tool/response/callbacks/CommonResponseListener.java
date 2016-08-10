@@ -8,7 +8,7 @@ import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
 /**
  * @author wuhao on 2016/7/15
  */
-public interface CommonResponseCallback {
+public interface CommonResponseListener {
 
 	/**
 	 * 当有事件发生时，统一通过此回调来通知

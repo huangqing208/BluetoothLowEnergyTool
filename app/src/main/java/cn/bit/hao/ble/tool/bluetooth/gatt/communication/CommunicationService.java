@@ -5,16 +5,21 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 
+import cn.bit.hao.ble.tool.response.callbacks.CommonResponseListener;
+import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
+
 /**
  * 此Service是用于通信的后台Service，负责处理来自UI的通信请求
  */
-public class CommunicationService extends Service {
+public class CommunicationService extends Service implements CommonResponseListener {
 	private static final String TAG = CommunicationService.class.getSimpleName();
 
 	private LocalBinder localBinder;
 
 	public CommunicationService() {
 		localBinder = new LocalBinder();
+		CommonResponseManager.getInstance().addTaskCallback(this);
 	}
 
 	@Override
@@ -33,6 +38,11 @@ public class CommunicationService extends Service {
 		super.onDestroy();
 	}
 
+	public void connectDevice(String macAddress) {
+
+
+	}
+
 	/**
 	 * 异步方法，向目标Characteristic发送数据
 	 *
@@ -42,7 +52,12 @@ public class CommunicationService extends Service {
 	public void writeCommand(String macAddress, byte[] command) {
 	}
 
-	public void readCharacteristic() {
+	public void readCharacteristic(String macAddress) {
+	}
+
+	@Override
+	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
+
 	}
 
 }

@@ -1,7 +1,9 @@
 /**
  * Copyright (c) www.bugull.com
  */
-package cn.bit.hao.ble.tool.response.events;
+package cn.bit.hao.ble.tool.response.events.bluetooth;
+
+import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
 
 /**
  * @author wuhao on 2016/7/30

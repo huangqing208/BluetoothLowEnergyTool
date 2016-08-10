@@ -6,7 +6,8 @@ package cn.bit.hao.ble.tool.bluetooth.scan;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 
-import cn.bit.hao.ble.tool.response.events.BluetoothLeScanEvent;
+import cn.bit.hao.ble.tool.bluetooth.utils.ScanRecordCompat;
+import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
 import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
 
 /**
@@ -18,6 +19,6 @@ public class LeScanCallbackImpl implements BluetoothAdapter.LeScanCallback {
 	@Override
 	public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
 		CommonResponseManager.getInstance().sendResponse(
-				new BluetoothLeScanEvent(device.getAddress(), rssi, scanRecord));
+				new BluetoothLeScanResultEvent(device.getAddress(), rssi, ScanRecordCompat.parseFromBytes(scanRecord)));
 	}
 }

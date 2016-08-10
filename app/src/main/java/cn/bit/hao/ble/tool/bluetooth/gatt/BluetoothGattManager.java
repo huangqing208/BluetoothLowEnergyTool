@@ -16,12 +16,14 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
+import cn.bit.hao.ble.tool.bluetooth.scan.BluetoothLeScanManager;
 import cn.bit.hao.ble.tool.bluetooth.state.BluetoothStateManager;
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUtil;
-import cn.bit.hao.ble.tool.response.callbacks.CommonResponseCallback;
-import cn.bit.hao.ble.tool.response.events.BluetoothGattEvent;
-import cn.bit.hao.ble.tool.response.events.BluetoothStateEvent;
+import cn.bit.hao.ble.tool.response.callbacks.CommonResponseListener;
 import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothGattEvent;
+import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
+import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothStateEvent;
 import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
 
 /**
@@ -29,7 +31,7 @@ import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
  *
  * @author wuhao on 2016/7/18
  */
-public class BluetoothGattManager implements CommonResponseCallback {
+public class BluetoothGattManager implements CommonResponseListener {
 	private static final String TAG = BluetoothGattManager.class.getSimpleName();
 
 	private WeakReference<Context> applicationContext;
@@ -39,12 +41,13 @@ public class BluetoothGattManager implements CommonResponseCallback {
 
 	private static BluetoothGattManager instance;
 
-	private Handler mHandler = new Handler(Looper.getMainLooper());
+	private Handler handler;
 
 	private static final int DISCONNECTING_TIMEOUT = 2000;
 
 	private BluetoothGattManager() {
 		bluetoothGattMap = new HashMap<>();
+		handler = new Handler(Looper.getMainLooper());
 	}
 
 	public static synchronized BluetoothGattManager getInstance() {
@@ -81,13 +84,34 @@ public class BluetoothGattManager implements CommonResponseCallback {
 	}
 
 	/**
+	 * 添加指定设备，当搜索到对应的设备的广播时才会去连接
+	 *
+	 * @param macAddress 目标设备mac地址
+	 * @return 如果添加成功则返回true，否则返回false
+	 */
+	public boolean connectDeviceWhenValid(String macAddress) {
+		if (!BluetoothUtil.checkBluetoothAddress(macAddress)) {
+			return false;
+		}
+		synchronized (bluetoothGattMap) {
+			if (bluetoothGattMap.containsKey(macAddress)) {
+				return false;
+			}
+			bluetoothGattMap.put(macAddress, null);
+		}
+		// 因为存在需要搜索连接的设备，所以开启搜索
+		BluetoothLeScanManager.getInstance().startLeScan(this);
+		return true;
+	}
+
+	/**
 	 * 建立连接到目标设备的Gatt连接，并且开始管理此Gatt连接。
 	 * 注意：此方法返回true并不表示连接已建立，只是表明已尝试连接，在对应系统回调后才能保证连接建立。
 	 *
 	 * @param macAddress 目标设备mac地址
 	 * @return 如果成功尝试连接则返回true，否则返回false
 	 */
-	public boolean connectDevice(String macAddress) {
+	private boolean connectDevice(String macAddress) {
 		if (!BluetoothStateManager.getInstance().isBluetoothEnabled()) {
 			// 如果蓝牙关闭的话，则暂停连接服务
 			return false;
@@ -116,6 +140,11 @@ public class BluetoothGattManager implements CommonResponseCallback {
 			Log.i(TAG, "Connect new Gatt costs " + (SystemClock.uptimeMillis() - time) + " ms");
 
 			bluetoothGattMap.put(macAddress, bluetoothGatt);
+
+			// 如果所有Gatt均已建立，那么也就无需继续搜索了
+			if (!bluetoothGattMap.containsValue(null)) {
+				BluetoothLeScanManager.getInstance().stopLeScan(this);
+			}
 			return true;
 		}
 	}
@@ -180,7 +209,7 @@ public class BluetoothGattManager implements CommonResponseCallback {
 		}
 		bluetoothGatt.disconnect();
 		Log.i(TAG, "disconnectGatt " + macAddress);
-		mHandler.postDelayed(new Runnable() {
+		handler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				// 如果断开连接超时，则手动删除连接
@@ -229,6 +258,11 @@ public class BluetoothGattManager implements CommonResponseCallback {
 		synchronized (bluetoothGattMap) {
 			closeGatt(macAddress);
 			bluetoothGattMap.remove(macAddress);
+
+			// 如果所有Gatt均已建立，那么也就无需继续搜索了
+			if (!bluetoothGattMap.containsValue(null)) {
+				BluetoothLeScanManager.getInstance().stopLeScan(this);
+			}
 		}
 	}
 
@@ -245,24 +279,46 @@ public class BluetoothGattManager implements CommonResponseCallback {
 		applicationContext = null;
 	}
 
+	private boolean discoverServices(String macAddress) {
+		BluetoothGatt bluetoothGatt = bluetoothGattMap.get(macAddress);
+		if (bluetoothGatt == null) {
+			return false;
+		}
+		// 每次新建的Gatt对象都需要请求一次Services列表才行
+		return bluetoothGatt.discoverServices();
+	}
+
 	private void onBluetoothStateOn() {
-		synchronized (bluetoothGattMap) {
-			for (Map.Entry<String, BluetoothGatt> item : bluetoothGattMap.entrySet()) {
-				if (item.getValue() == null) {
-					try {
-						// TODO: 尝试重新连接gatt，还是先检测有广播了，再重连？
-						connectDevice(item.getKey());
-					} catch (IllegalStateException e) {
-						e.printStackTrace();
+		// TODO: 尝试重新连接gatt，还是先检测有广播了，再重连？
+//		// 方案1：直接重连
+//		synchronized (bluetoothGattMap) {
+//			for (Map.Entry<String, BluetoothGatt> item : bluetoothGattMap.entrySet()) {
+//				if (item.getValue() == null) {
+//					try {
+//						connectDevice(item.getKey());
+//					} catch (IllegalStateException e) {
+//						e.printStackTrace();
+//					}
+//				}
+//			}
+//		}
+		// 方案2：开启搜索
+		// 在少数手机上，有时候当手机刚切换为开启状态时立即startLeScan是不会出错但也不会搜索的。原因不详，只知道加延时有效。
+		handler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				synchronized (bluetoothGattMap) {
+					if (bluetoothGattMap.containsValue(null)) {
+						BluetoothLeScanManager.getInstance().startLeScan(BluetoothGattManager.this);
 					}
 				}
 			}
-		}
+		}, 500);
 	}
 
 	private void onBluetoothStateOff() {
 		synchronized (bluetoothGattMap) {
-			// 断开所有蓝牙连接，恢复连接后则重连
+			// 断开所有蓝牙连接，恢复连接后再重连
 			for (String macAddress : bluetoothGattMap.keySet()) {
 				closeGatt(macAddress);
 			}
@@ -287,7 +343,7 @@ public class BluetoothGattManager implements CommonResponseCallback {
 			String macAddress = ((BluetoothGattEvent) commonResponseEvent).getMacAddress();
 			switch (((BluetoothGattEvent) commonResponseEvent).getEventCode()) {
 				case GATT_CONNECTED:
-					// 好像没啥事
+					discoverServices(macAddress);
 					break;
 				case GATT_DISCONNECTED:
 					// 如果是主动发起的断开连接，则再次彻底删除连接
@@ -296,12 +352,26 @@ public class BluetoothGattManager implements CommonResponseCallback {
 				case GATT_REMOTE_DISAPPEARED:
 				case GATT_CONNECT_TIMEOUT:
 					// 如果是被动的断开了连接或者是连接超时，考虑重新连接
-					// TODO: 是否立即重连，还是检测有广播了再重连？
 					closeGatt(macAddress);
-					connectDevice(macAddress);
+					// TODO: 是否立即重连，还是检测有广播了再重连？
+//                  // 方案1：立即重连
+//					connectDevice(macAddress);
+					// 方案2：开启搜索
+					BluetoothLeScanManager.getInstance().startLeScan(this);
 					break;
 				default:
 					break;
+			}
+		} else if (commonResponseEvent instanceof BluetoothLeScanResultEvent) {
+			// 如果搜索到需要重连的设备，那就去重连
+			String macAddress = ((BluetoothLeScanResultEvent) commonResponseEvent).getMacAddress();
+			synchronized (bluetoothGattMap) {
+				if (!bluetoothGattMap.containsKey(macAddress)) {
+					return;
+				}
+				if (bluetoothGattMap.get(macAddress) == null) {
+					connectDevice(macAddress);
+				}
 			}
 		}
 	}

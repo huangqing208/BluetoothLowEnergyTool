@@ -6,11 +6,12 @@ package cn.bit.hao.ble.tool.bluetooth.state;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import java.lang.ref.WeakReference;
 
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUtil;
-import cn.bit.hao.ble.tool.response.events.BluetoothStateEvent;
+import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothStateEvent;
 import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
 
 /**
@@ -32,6 +33,11 @@ public class BluetoothStateManager {
 	private int bluetoothState = BluetoothAdapter.ERROR;
 
 	private WeakReference<Context> applicationContext;
+
+	/**
+	 * 标志量，表示正在重置蓝牙
+	 */
+	private boolean resettingBluetooth = false;
 
 	private BluetoothStateManager() {
 	}
@@ -124,10 +130,15 @@ public class BluetoothStateManager {
 				event = new BluetoothStateEvent(BluetoothStateEvent.BluetoothStateCode.BLUETOOTH_STATE_ON);
 				break;
 			case BluetoothAdapter.STATE_OFF:
-				// TODO: 以下为可配置选项，默认由此Service维护蓝牙重启，也可以禁用此处的功能，在BluetoothCallback回调时再考虑是否重启
 				Context context = getContext();
 				if (context != null) {
-					BluetoothUtil.requestBluetooth(context);
+					if (resettingBluetooth) {
+						resettingBluetooth = false;
+						BluetoothUtil.setBluetoothState(context, true);
+					} else {
+						// TODO: 以下为可配置选项，默认由此Manager维护蓝牙重启，也可以禁用此处的功能，在BluetoothCallback回调时再考虑是否重启
+						BluetoothUtil.requestBluetooth(context);
+					}
 				}
 				event = new BluetoothStateEvent(BluetoothStateEvent.BluetoothStateCode.BLUETOOTH_STATE_OFF);
 				break;
@@ -158,4 +169,23 @@ public class BluetoothStateManager {
 		return isBluetoothSupported() && bluetoothState == BluetoothAdapter.STATE_ON;
 	}
 
+	/**
+	 * 重置蓝牙。
+	 * 注意：必须获得用户允许才能开始重置。
+	 *
+	 * @return 如果成功执行返回true，否则返回false
+	 */
+	public boolean resetBluetooth() {
+		Context context = getContext();
+		if (context == null) {
+			return false;
+		}
+		if (!isBluetoothEnabled()) {
+			return false;
+		}
+		resettingBluetooth = BluetoothUtil.setBluetoothState(context, false);
+		Log.i(TAG, "resetBluetooth " + resettingBluetooth);
+		// 此处关闭蓝牙，监听到关闭状态时会主动打开蓝牙的
+		return resettingBluetooth;
+	}
 }

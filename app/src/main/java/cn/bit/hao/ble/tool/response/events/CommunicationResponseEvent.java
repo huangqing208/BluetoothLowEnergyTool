@@ -41,19 +41,6 @@ public class CommunicationResponseEvent extends CommonResponseEvent {
 	}
 
 	@Override
-	public CommunicationResponseEvent clone() {
-		CommunicationResponseEvent result = null;
-		try {
-			result = (CommunicationResponseEvent) super.clone();
-			result.macAddress = this.macAddress;
-			result.fieldCode = this.fieldCode;
-		} catch (ClassCastException e) {
-			e.printStackTrace();
-		}
-		return result;
-	}
-
-	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("fieldCode: ").append(fieldCode);

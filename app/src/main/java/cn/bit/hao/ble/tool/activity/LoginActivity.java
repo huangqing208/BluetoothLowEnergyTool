@@ -29,13 +29,16 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import cn.bit.hao.ble.tool.R;
 import cn.bit.hao.ble.tool.application.App;
-import cn.bit.hao.ble.tool.bluetooth.scan.BluetoothLeScanManager;
-import cn.bit.hao.ble.tool.response.events.BluetoothLeScanEvent;
+import cn.bit.hao.ble.tool.bluetooth.gatt.BluetoothGattManager;
+import cn.bit.hao.ble.tool.bluetooth.utils.ScanRecordCompat;
 import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -107,9 +110,10 @@ public class LoginActivity extends GattCommunicationActivity implements LoaderCa
 
 		mLog = (TextView) findViewById(R.id.log);
 
-		BluetoothLeScanManager.getInstance().startLeScan();
+//		BluetoothLeScanManager.getInstance().startLeScan(this);
 //		BluetoothGattManager.getInstance().connectDevice("02:02:5B:00:25:13");
 //		BluetoothGattManager.getInstance().connectDevice("00:02:5B:00:25:13");
+		BluetoothGattManager.getInstance().connectDeviceWhenValid("00:02:5B:00:25:13");
 	}
 
 	@Override
@@ -117,12 +121,26 @@ public class LoginActivity extends GattCommunicationActivity implements LoaderCa
 	}
 
 	private int count;
+	private Map<String, ScanRecordCompat> scanResults = new HashMap<>();
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		// 界面呈现时，旧数据陈旧可信度不一定高，考虑清空重来
+		scanResults.clear();
+	}
 
 	@Override
 	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
 		super.onCommonResponded(commonResponseEvent);
-		if (commonResponseEvent instanceof BluetoothLeScanEvent) {
+		if (commonResponseEvent instanceof BluetoothLeScanResultEvent) {
 			mLog.setText("Count: " + ++count + "\n" + commonResponseEvent.toString());
+
+			// 收集搜索结果
+			String macAddress = ((BluetoothLeScanResultEvent) commonResponseEvent).getMacAddress();
+			if (!scanResults.containsKey(macAddress)) {
+				scanResults.put(macAddress, ((BluetoothLeScanResultEvent) commonResponseEvent).getScanRecord());
+			}
 		}
 	}
 
@@ -130,7 +148,7 @@ public class LoginActivity extends GattCommunicationActivity implements LoaderCa
 	protected void onPause() {
 		super.onPause();
 		if (isFinishing()) {
-			BluetoothLeScanManager.getInstance().stopLeScan();
+//			BluetoothLeScanManager.getInstance().stopLeScan(this);
 			App.getInstance().exitApp();
 //			BluetoothGattManager.getInstance().disconnectGatt("00:02:5B:00:25:13");
 		}

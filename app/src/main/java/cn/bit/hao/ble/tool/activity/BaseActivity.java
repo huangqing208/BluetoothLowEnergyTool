@@ -11,8 +11,9 @@ import android.widget.TextView;
 
 import cn.bit.hao.ble.tool.bluetooth.state.BluetoothStateManager;
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUtil;
-import cn.bit.hao.ble.tool.response.callbacks.CommonResponseCallback;
-import cn.bit.hao.ble.tool.response.events.BluetoothStateEvent;
+import cn.bit.hao.ble.tool.response.callbacks.CommonResponseListener;
+import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanEvent;
+import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothStateEvent;
 import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
 import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
 
@@ -23,7 +24,7 @@ import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
  *
  * @author wuhao on 2016/7/16
  */
-public abstract class BaseActivity extends AppCompatActivity implements CommonResponseCallback {
+public abstract class BaseActivity extends AppCompatActivity implements CommonResponseListener {
 	private static final String TAG = BaseActivity.class.getSimpleName();
 
 	@Override
@@ -37,7 +38,7 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 	protected void onStart() {
 		super.onStart();
 		Log.i(TAG, BaseActivity.this.getClass().getSimpleName() + " onStart");
-		CommonResponseManager.getInstance().setUINotification(this);
+		CommonResponseManager.getInstance().registerUINotification(this);
 		refreshBluetoothState();
 	}
 
@@ -62,10 +63,9 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 	protected void onPause() {
 		super.onPause();
 		Log.i(TAG, BaseActivity.this.getClass().getSimpleName() + " onPause");
-		CommonResponseManager.getInstance().setUINotification(null);
 		if (isFinishing()) {
-			// Activity间的切换时的生命周期是：退出Activity的onPause，进入Activity的onStart，进入Activity的onResume，退出Activity的onStop。
-			// 如果进入Activity在onStart中有逻辑请求，当返回迅速时，如果退出Activity还没有removeUICallback，就会出错。
+			// Activity间的切换时的生命周期顺序是：退出Activity的onPause->进入Activity的onStart->进入Activity的onResume->退出Activity的onStop。
+			// 如果进入Activity在onStart中有逻辑请求，而退出Activity还没有removeUICallback时，返回的消息会送到退出Activity，于是就会出错。
 			// 所以，退出Activity在onStop中做removeUICallback是不合理的，在onPause中做removeUICallback才行。
 			// 也可以理解为：终结活动的Activity需要立即结束回调监听
 			CommonResponseManager.getInstance().removeUICallback(this);
@@ -76,6 +76,8 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 	protected void onStop() {
 		super.onStop();
 		Log.i(TAG, BaseActivity.this.getClass().getSimpleName() + " onStop");
+		// 如果是切换到其他App，则需要停止UI监听
+		CommonResponseManager.getInstance().unregisterUINotification(this);
 	}
 
 	@Override
@@ -88,6 +90,16 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 					// if bluetooth is off, show some info
 					break;
 				case BLUETOOTH_STATE_ERROR:
+				default:
+					break;
+			}
+		} else if (commonResponseEvent instanceof BluetoothLeScanEvent) {
+			switch (((BluetoothLeScanEvent) commonResponseEvent).getBluetoothLeScanCode()) {
+				case LE_SCAN_TIMEOUT:
+					// TODO: show a dialog ask for reset bluetooth
+					BluetoothStateManager.getInstance().resetBluetooth();
+					break;
+				case LE_SCAN_FAILED:
 				default:
 					break;
 			}

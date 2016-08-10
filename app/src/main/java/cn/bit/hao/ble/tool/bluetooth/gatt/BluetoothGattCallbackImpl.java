@@ -10,7 +10,7 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.util.Log;
 
 import cn.bit.hao.ble.tool.data.DeviceStore;
-import cn.bit.hao.ble.tool.response.events.BluetoothGattEvent;
+import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothGattEvent;
 import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
 
 /**
@@ -64,6 +64,12 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 	@Override
 	public void onServicesDiscovered(BluetoothGatt gatt, int status) {
 		super.onServicesDiscovered(gatt, status);
+		if (status != BluetoothGatt.GATT_SUCCESS) {
+			return;
+		}
+		CommonResponseManager.getInstance().sendResponse(
+				new BluetoothGattEvent(BluetoothGattEvent.BluetoothGattCode.GATT_SERVICES_DISCOVERED,
+						gatt.getDevice().getAddress()));
 	}
 
 	@Override

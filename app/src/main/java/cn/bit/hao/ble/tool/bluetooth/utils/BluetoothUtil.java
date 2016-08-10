@@ -36,6 +36,24 @@ public class BluetoothUtil {
 	}
 
 	/**
+	 * 开关蓝牙
+	 *
+	 * @param context 上下文对象
+	 * @param enable  开启或关闭
+	 * @return 如果成功执行则返回true，否则返回false
+	 */
+	public static boolean setBluetoothState(Context context, boolean enable) {
+		if (context == null) {
+			return false;
+		}
+		BluetoothAdapter bluetoothAdapter = getBluetoothAdapter(context);
+		if (bluetoothAdapter == null) {
+			return false;
+		}
+		return enable ? bluetoothAdapter.enable() : bluetoothAdapter.disable();
+	}
+
+	/**
 	 * 文档见{@link BluetoothAdapter#checkBluetoothAddress(String)}
 	 */
 	public static boolean checkBluetoothAddress(String macAddress) {
