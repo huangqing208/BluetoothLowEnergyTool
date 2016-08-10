@@ -77,7 +77,7 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 		super.onStop();
 		Log.i(TAG, BaseActivity.this.getClass().getSimpleName() + " onStop");
 		// 如果是切换到其他App，则需要停止UI监听
-		CommonResponseManager.getInstance().unregisterUINotification(this);
+		CommonResponseManager.getInstance().unregisterUINotification();
 	}
 
 	@Override

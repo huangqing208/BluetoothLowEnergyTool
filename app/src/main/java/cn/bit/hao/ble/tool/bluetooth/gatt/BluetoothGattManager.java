@@ -9,12 +9,12 @@ import android.bluetooth.BluetoothGatt;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
 import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cn.bit.hao.ble.tool.bluetooth.scan.BluetoothLeScanManager;
 import cn.bit.hao.ble.tool.bluetooth.state.BluetoothStateManager;
@@ -39,6 +39,8 @@ public class BluetoothGattManager implements CommonResponseListener {
 	// 保存当前的各个Gatt连接对象
 	private final Map<String, BluetoothGatt> bluetoothGattMap;
 
+	private Map<String, Runnable> disconnectTimeoutMap;
+
 	private static BluetoothGattManager instance;
 
 	private Handler handler;
@@ -47,6 +49,8 @@ public class BluetoothGattManager implements CommonResponseListener {
 
 	private BluetoothGattManager() {
 		bluetoothGattMap = new HashMap<>();
+		// ConcurrentHashMap可以保证多线程调用同方法时，比如remove方法时，不会都返回value，而是一个返回value，另一个返回null
+		disconnectTimeoutMap = new ConcurrentHashMap<>();
 		handler = new Handler(Looper.getMainLooper());
 	}
 
@@ -112,14 +116,6 @@ public class BluetoothGattManager implements CommonResponseListener {
 	 * @return 如果成功尝试连接则返回true，否则返回false
 	 */
 	private boolean connectDevice(String macAddress) {
-		if (!BluetoothStateManager.getInstance().isBluetoothEnabled()) {
-			// 如果蓝牙关闭的话，则暂停连接服务
-			return false;
-		}
-		if (!BluetoothUtil.checkBluetoothAddress(macAddress)) {
-			return false;
-		}
-
 		// 在此加锁可以保证多线程调用不会重复执行
 		synchronized (bluetoothGattMap) {
 			if (bluetoothGattMap.get(macAddress) != null) {
@@ -127,17 +123,24 @@ public class BluetoothGattManager implements CommonResponseListener {
 				return false;
 			}
 
+			if (!BluetoothStateManager.getInstance().isBluetoothEnabled()) {
+				// 如果蓝牙关闭的话，则暂停连接服务
+				return false;
+			}
+			if (!BluetoothUtil.checkBluetoothAddress(macAddress)) {
+				return false;
+			}
 			Context context = getContext();
 			if (context == null) {
 				return false;
 			}
+
 			BluetoothDevice bluetoothDevice = BluetoothUtil.getBluetoothDevice(context, macAddress);
 
-			long time = SystemClock.uptimeMillis();
 			// We want to directly connect to the device, so we are setting the autoConnect
 			// parameter to false.
 			BluetoothGatt bluetoothGatt = bluetoothDevice.connectGatt(context, false, new BluetoothGattCallbackImpl());
-			Log.i(TAG, "Connect new Gatt costs " + (SystemClock.uptimeMillis() - time) + " ms");
+			Log.i(TAG, "Connect new Gatt " + macAddress);
 
 			bluetoothGattMap.put(macAddress, bluetoothGatt);
 
@@ -193,29 +196,36 @@ public class BluetoothGattManager implements CommonResponseListener {
 	public void disconnectGatt(final String macAddress) {
 		BluetoothGatt bluetoothGatt;
 		synchronized (bluetoothGattMap) {
+			// 如果没有此设备，则啥也不干
 			if (!bluetoothGattMap.containsKey(macAddress)) {
 				return;
 			}
+			// 如果此时设备当前无连接，则remove即可
 			bluetoothGatt = bluetoothGattMap.get(macAddress);
 			if (bluetoothGatt == null) {
-				removeGatt(macAddress);
+				removeDevice(macAddress);
 				return;
 			}
 		}
+
+		// 如果尝试连接但没连接上的话，直接remove掉就行了
 		if (!isGattConnected(macAddress)) {
-			// 如果尝试连接但没连接上的话，直接remove掉就行了
-			removeGatt(macAddress);
+			removeDevice(macAddress);
 			return;
 		}
+
+		// 设备是有连接的，那么就断开连接好了
 		bluetoothGatt.disconnect();
 		Log.i(TAG, "disconnectGatt " + macAddress);
-		handler.postDelayed(new Runnable() {
+		disconnectTimeoutMap.put(macAddress, new Runnable() {
 			@Override
 			public void run() {
-				// 如果断开连接超时，则手动删除连接
-				removeGatt(macAddress);
+				disconnectTimeoutMap.remove(macAddress);
+				// 如果断开连接超时，则删除设备与连接
+				removeDevice(macAddress);
 			}
-		}, DISCONNECTING_TIMEOUT);
+		});
+		handler.postDelayed(disconnectTimeoutMap.get(macAddress), DISCONNECTING_TIMEOUT);
 		return;
 	}
 
@@ -254,7 +264,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 	 *
 	 * @param macAddress 目标设备的mac地址
 	 */
-	private void removeGatt(String macAddress) {
+	private void removeDevice(String macAddress) {
 		synchronized (bluetoothGattMap) {
 			closeGatt(macAddress);
 			bluetoothGattMap.remove(macAddress);
@@ -272,7 +282,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 	public void removeAllGatts() {
 		synchronized (bluetoothGattMap) {
 			for (String macAddress : bluetoothGattMap.keySet()) {
-				removeGatt(macAddress);
+				removeDevice(macAddress);
 			}
 		}
 		CommonResponseManager.getInstance().removeTaskCallback(this);
@@ -346,11 +356,15 @@ public class BluetoothGattManager implements CommonResponseListener {
 					discoverServices(macAddress);
 					break;
 				case GATT_DISCONNECTED:
-					// 如果是主动发起的断开连接，则再次彻底删除连接
-					removeGatt(macAddress);
-					break;
+					if (disconnectTimeoutMap.remove(macAddress) != null) {
+						// 如果是主动发起的断开连接，则再次彻底删除连接
+						removeDevice(macAddress);
+						break;
+					}
+					// 如果是被动的断开了连接的话，则处理方式与以下情形相同
 				case GATT_REMOTE_DISAPPEARED:
 				case GATT_CONNECT_TIMEOUT:
+				case GATT_CONNECTION_ERROR:
 					// 如果是被动的断开了连接或者是连接超时，考虑重新连接
 					closeGatt(macAddress);
 					// TODO: 是否立即重连，还是检测有广播了再重连？
@@ -359,6 +373,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 					// 方案2：开启搜索
 					BluetoothLeScanManager.getInstance().startLeScan(this);
 					break;
+				case GATT_SERVICES_DISCOVERED:
 				default:
 					break;
 			}

@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.bit.hao.ble.tool.response.callbacks.CommonResponseListener;
-import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
 import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
 
 
 /**
@@ -67,21 +67,10 @@ public class CommonResponseManager {
 	}
 
 	/**
-	 * 指定一个UI回调对象，取消对此回调的Notification返回。
-	 *
-	 * @param uiCallback 指定要取消通知的UI回调对象
+	 * 取消对UI的回调返回。
 	 */
-	public void unregisterUINotification(CommonResponseListener uiCallback) {
-		synchronized (uiCallbacks) {
-			if (uiCallback == null) {
-				return;
-			}
-			notifyUI = false;
-			int size = uiCallbacks.size();
-			if (size > 0 && uiCallbacks.get(size - 1).equals(uiCallback)) {
-				uiCallbacks.remove(size - 1);
-			}
-		}
+	public void unregisterUINotification() {
+		notifyUI = false;
 	}
 
 	public boolean addUICallback(CommonResponseListener callback) {

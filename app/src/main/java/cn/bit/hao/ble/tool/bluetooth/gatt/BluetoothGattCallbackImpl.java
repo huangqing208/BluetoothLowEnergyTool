@@ -35,6 +35,7 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 						break;
 					}
 					case BluetoothGatt.STATE_DISCONNECTED: {
+						// 不一定是主动断开，可能是被动断开，但却是正常的被动断开
 						bluetoothGattEvent = new BluetoothGattEvent(BluetoothGattEvent.BluetoothGattCode.GATT_DISCONNECTED, macAddress);
 						break;
 					}
