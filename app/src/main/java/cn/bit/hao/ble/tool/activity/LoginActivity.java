@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -35,9 +36,11 @@ import java.util.Map;
 
 import cn.bit.hao.ble.tool.R;
 import cn.bit.hao.ble.tool.application.App;
+import cn.bit.hao.ble.tool.application.Constants;
 import cn.bit.hao.ble.tool.bluetooth.gatt.BluetoothGattManager;
 import cn.bit.hao.ble.tool.bluetooth.utils.ScanRecordCompat;
 import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothGattEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
 
 import static android.Manifest.permission.READ_CONTACTS;
@@ -137,9 +140,25 @@ public class LoginActivity extends GattCommunicationActivity implements LoaderCa
 			mLog.setText("Count: " + ++count + "\n" + commonResponseEvent.toString());
 
 			// 收集搜索结果
-			String macAddress = ((BluetoothLeScanResultEvent) commonResponseEvent).getMacAddress();
-			if (!scanResults.containsKey(macAddress)) {
-				scanResults.put(macAddress, ((BluetoothLeScanResultEvent) commonResponseEvent).getScanRecord());
+			ScanRecordCompat scanRecordCompat = ((BluetoothLeScanResultEvent) commonResponseEvent).getScanRecord();
+			List<ParcelUuid> serviceList = scanRecordCompat.getServiceUuids();
+			if (serviceList != null && serviceList.contains(Constants.CSR_MESH_SERVICE)) {
+				String macAddress = ((BluetoothLeScanResultEvent) commonResponseEvent).getMacAddress();
+				if (!scanResults.containsKey(macAddress)) {
+					scanResults.put(macAddress, scanRecordCompat);
+					Log.i(TAG, "mesh device count " + scanResults.size());
+				}
+			}
+		} else if (commonResponseEvent instanceof BluetoothGattEvent) {
+			String macAddress = ((BluetoothGattEvent) commonResponseEvent).getMacAddress();
+			switch (((BluetoothGattEvent) commonResponseEvent).getEventCode()) {
+				case GATT_CONNECTED:
+				case GATT_SCAN_DEVICE_TIMEOUT:
+				case GATT_CONNECT_TIMEOUT:
+					Log.i(TAG, commonResponseEvent.toString());
+					break;
+				default:
+					break;
 			}
 		}
 	}

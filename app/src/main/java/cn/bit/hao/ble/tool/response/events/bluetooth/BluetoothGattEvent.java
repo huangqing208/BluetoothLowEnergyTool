@@ -12,25 +12,28 @@ public class BluetoothGattEvent extends CommonResponseEvent {
 	private static final String TAG = BluetoothGattEvent.class.getSimpleName();
 
 	public enum BluetoothGattCode {
+		GATT_SCAN_DEVICE_TIMEOUT,
+		/**
+		 * 默认当读取完gatt services的列表后才算连接建立
+		 */
 		GATT_CONNECTED,
 		GATT_DISCONNECTED,
 		GATT_CONNECT_TIMEOUT,
 		GATT_REMOTE_DISAPPEARED,
-		GATT_CONNECTION_ERROR,
-		GATT_SERVICES_DISCOVERED
+		GATT_CONNECTION_ERROR
 	}
 
 	private BluetoothGattCode eventCode;
 	private String macAddress;
 
-	public BluetoothGattEvent(BluetoothGattCode eventCode, String macAddress) {
-		this.eventCode = eventCode;
+	public BluetoothGattEvent(String macAddress, BluetoothGattCode eventCode) {
 		this.macAddress = macAddress;
+		this.eventCode = eventCode;
 	}
 
 	public BluetoothGattEvent(BluetoothGattEvent bluetoothGattEvent) {
-		this.eventCode = bluetoothGattEvent.eventCode;
 		this.macAddress = bluetoothGattEvent.macAddress;
+		this.eventCode = bluetoothGattEvent.eventCode;
 	}
 
 	public BluetoothGattCode getEventCode() {

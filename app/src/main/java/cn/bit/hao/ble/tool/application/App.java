@@ -41,7 +41,7 @@ public class App extends Application {
 
 	public void exitApp() {
 		if (instance != null) {
-			BluetoothGattManager.getInstance().removeAllGatts();
+			BluetoothGattManager.getInstance().finish();
 			BluetoothLeScanManager.getInstance().finish();
 			BluetoothStateManager.getInstance().finish();
 

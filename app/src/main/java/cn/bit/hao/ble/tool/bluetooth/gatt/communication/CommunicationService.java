@@ -40,7 +40,6 @@ public class CommunicationService extends Service implements CommonResponseListe
 
 	public void connectDevice(String macAddress) {
 
-
 	}
 
 	/**
@@ -57,7 +56,6 @@ public class CommunicationService extends Service implements CommonResponseListe
 
 	@Override
 	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
-
 	}
 
 }
