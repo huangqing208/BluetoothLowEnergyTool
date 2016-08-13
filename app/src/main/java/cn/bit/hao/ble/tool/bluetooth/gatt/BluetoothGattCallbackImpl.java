@@ -64,13 +64,12 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 		}
 	}
 
-	private Runnable cancelTimeout(TaskId taskId) {
+	private void cancelTimeout(TaskId taskId) {
 		synchronized (timeoutMap) {
 			Runnable task = timeoutMap.remove(taskId);
 			if (task != null) {
 				handler.removeCallbacks(task);
 			}
-			return task;
 		}
 	}
 
@@ -123,8 +122,10 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 										BluetoothGattEvent.BluetoothGattCode.GATT_DISCONNECTED));
 						break;
 					default:
-						// TODO: 这里要不要处理呢？
-						super.onConnectionStateChange(gatt, status, newState);
+//						super.onConnectionStateChange(gatt, status, newState);
+						CommonResponseManager.getInstance().sendResponse(
+								new BluetoothGattEvent(macAddress,
+										BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 						break;
 				}
 				break;
@@ -202,6 +203,7 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 		super.onCharacteristicRead(gatt, characteristic, status);
 		if (status != BluetoothGatt.GATT_SUCCESS) {
 			// TODO: 如果在此得知某个read操作失败的话，可以立即反馈，无需超时处理
+
 			return;
 		}
 		GattResponseManager.getInstance().receiveResponse(gatt.getDevice().getAddress(),

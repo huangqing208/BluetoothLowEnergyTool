@@ -150,16 +150,20 @@ public class LoginActivity extends GattCommunicationActivity implements LoaderCa
 				}
 			}
 		} else if (commonResponseEvent instanceof BluetoothGattEvent) {
-			String macAddress = ((BluetoothGattEvent) commonResponseEvent).getMacAddress();
-			switch (((BluetoothGattEvent) commonResponseEvent).getEventCode()) {
-				case GATT_CONNECTED:
-				case GATT_SCAN_DEVICE_TIMEOUT:
-				case GATT_CONNECT_TIMEOUT:
-					Log.i(TAG, commonResponseEvent.toString());
-					break;
-				default:
-					break;
-			}
+			// UI观察GATT连接事件，可以向用户反馈状态变化
+			Log.i(TAG, commonResponseEvent.toString());
+//			String macAddress = ((BluetoothGattEvent) commonResponseEvent).getMacAddress();
+//			switch (((BluetoothGattEvent) commonResponseEvent).getEventCode()) {
+//				case GATT_CONNECTED:
+//				case GATT_SCAN_DEVICE_TIMEOUT:
+//				case GATT_CONNECT_TIMEOUT:
+//				case GATT_DISCONNECTED:
+//				case GATT_CONNECTION_ERROR:
+//				case GATT_REMOTE_DISAPPEARED:
+//					break;
+//				default:
+//					break;
+//			}
 		}
 	}
 

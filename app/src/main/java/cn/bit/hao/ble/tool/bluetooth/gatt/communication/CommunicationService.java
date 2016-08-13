@@ -36,6 +36,7 @@ public class CommunicationService extends Service implements CommonResponseListe
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		CommonResponseManager.getInstance().removeTaskCallback(this);
 	}
 
 	public void connectDevice(String macAddress) {
