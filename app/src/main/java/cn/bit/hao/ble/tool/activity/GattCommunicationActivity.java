@@ -11,7 +11,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
-import cn.bit.hao.ble.tool.bluetooth.gatt.communication.CommunicationService;
+import cn.bit.hao.ble.tool.service.CommunicationService;
 import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
 import cn.bit.hao.ble.tool.response.events.CommunicationResponseEvent;
 
@@ -51,7 +51,7 @@ public abstract class GattCommunicationActivity extends BaseActivity {
 			Log.e(TAG, "MyService crashed!!");
 			unbindCommunicationService();
 
-			// rebind service
+			// rebind serviceUuid
 			bindCommunicationService();
 		}
 	};

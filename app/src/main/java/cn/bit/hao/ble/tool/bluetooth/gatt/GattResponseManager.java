@@ -1,7 +1,7 @@
 /**
  * Copyright (c) www.bugull.com
  */
-package cn.bit.hao.ble.tool.bluetooth.gatt.communication;
+package cn.bit.hao.ble.tool.bluetooth.gatt;
 
 import android.bluetooth.BluetoothGattCharacteristic;
 

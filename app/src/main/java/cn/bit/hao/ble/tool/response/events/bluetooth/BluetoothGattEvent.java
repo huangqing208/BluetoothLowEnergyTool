@@ -23,8 +23,8 @@ public class BluetoothGattEvent extends CommonResponseEvent {
 		GATT_CONNECTION_ERROR
 	}
 
-	private BluetoothGattCode eventCode;
 	private String macAddress;
+	private BluetoothGattCode eventCode;
 
 	public BluetoothGattEvent(String macAddress, BluetoothGattCode eventCode) {
 		this.macAddress = macAddress;

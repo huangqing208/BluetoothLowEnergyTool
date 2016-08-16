@@ -191,7 +191,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 	 * @param macAddress 目标对象的mac地址
 	 * @return 对应的Gatt对象，如果返回为null，表示Gatt连接不存在
 	 */
-	public BluetoothGatt getBluetoothGatt(String macAddress) {
+	/*package*/ BluetoothGatt getBluetoothGatt(String macAddress) {
 		return bluetoothGattMap.get(macAddress);
 	}
 
@@ -201,7 +201,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 	 * @param macAddress 目标设备的mac地址
 	 * @return 如果Gatt连接已建立则返回true，否则返回false
 	 */
-	public boolean isGattConnected(String macAddress) {
+	public boolean isDeviceConnected(String macAddress) {
 		Context context = getContext();
 		return context != null
 				&& BluetoothUtil.getBluetoothGattState(context, macAddress)
@@ -231,7 +231,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 		}
 
 //		// 如果尝试连接但没连接上的话，直接remove掉就行了
-//		if (!isGattConnected(macAddress)) {
+//		if (!isDeviceConnected(macAddress)) {
 //			removeDevice(macAddress);
 //			return;
 //		}
@@ -302,6 +302,8 @@ public class BluetoothGattManager implements CommonResponseListener {
 				BluetoothLeScanManager.getInstance().stopLeScan(this);
 			}
 		}
+
+		GattRequestManager.getInstance().removeRequestQueue(macAddress);
 	}
 
 	/**
@@ -477,6 +479,10 @@ public class BluetoothGattManager implements CommonResponseListener {
 						onGattConnectionError(macAddress);
 					}
 					break;
+				case GATT_REMOTE_DISAPPEARED:
+					// 如果超过距离断开连接了的话，那么，主动恢复连接
+				case GATT_CONNECTION_ERROR:
+					// 意外的错误处理
 				case GATT_CONNECT_TIMEOUT:
 					// 此时是有尝试连接设备的，先用disconnect取消掉尝试连接，然后再次close并connect
 					// TODO: 之所以先取消尝试连接，再重置连接，与固件端程序未优化有一定关系。
@@ -488,12 +494,6 @@ public class BluetoothGattManager implements CommonResponseListener {
 					if (bluetoothGatt != null) {
 						bluetoothGatt.disconnect();
 					}
-					onGattConnectionError(macAddress);
-					break;
-				case GATT_REMOTE_DISAPPEARED:
-					// 如果超过距离断开连接了的话，那么，主动恢复连接
-				case GATT_CONNECTION_ERROR:
-					// 意外的错误处理
 					onGattConnectionError(macAddress);
 					break;
 				default:

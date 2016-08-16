@@ -83,6 +83,12 @@ public final class BluetoothUuid {
 			ParcelUuid.fromString("00000000-0000-1000-8000-00805F9B34FB");
 
 	/**
+	 * Core 4.2 Vol 3 Part G Section 3.3.3.3 P2228
+	 */
+	public static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION =
+			UUID.fromString("00002902-0000-1000-8000-00805F9B34FB");
+
+	/**
 	 * Length of bytes for 16 bit UUID
 	 */
 	public static final int UUID_BYTES_16_BIT = 2;
@@ -231,7 +237,7 @@ public final class BluetoothUuid {
 	 * this function will return 110B
 	 *
 	 * @param parcelUuid
-	 * @return the service identifier.
+	 * @return the serviceUuid identifier.
 	 */
 	public static int getServiceIdentifierFromParcelUuid(ParcelUuid parcelUuid) {
 		UUID uuid = parcelUuid.getUuid();

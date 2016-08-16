@@ -16,13 +16,11 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import cn.bit.hao.ble.tool.bluetooth.gatt.communication.GattResponseManager;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothGattEvent;
 import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
 
 /**
  * 此为自定义的Gatt回调实现
- * TODO: 此类中需要做定制处理，比如有以STATE_CONNECTED为连接标志的，也有以onServicesDiscovered为标志的，等等
  *
  * @author wuhao on 2016/8/1
  */
@@ -73,27 +71,16 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 		}
 	}
 
-	/**
-	 * 禁断的代码，特殊情形下使用
-	 */
-	private void refreshCache(BluetoothGatt bluetoothGatt) {
-		try {
-			Method refresh = bluetoothGatt.getClass().getMethod("refresh", (Class[]) null);
-			refresh.invoke(bluetoothGatt, (Object[]) null);
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
-	}
-
 	@Override
 	public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
 		final String macAddress = gatt.getDevice().getAddress();
+
+		// 但凡是有连接状态改变，都影响请求队列执行，都停止就好了
+		GattRequestManager.getInstance().pauseRequest(macAddress);
+
 		Log.w(TAG, macAddress + " onConnectionStateChange status: " + status
 				+ " newState: " + newState);
+
 		switch (status) {
 			case BluetoothGatt.GATT_SUCCESS:
 				switch (newState) {
@@ -152,18 +139,20 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 	@Override
 	public void onServicesDiscovered(BluetoothGatt gatt, int status) {
 		super.onServicesDiscovered(gatt, status);
+		final String macAddress = gatt.getDevice().getAddress();
 		cancelTimeout(TaskId.DISCOVER_SERVICE);
 		if (status != BluetoothGatt.GATT_SUCCESS) {
 			// 如果在此得知搜索服务操作失败的话，可以立即反馈，无需超时处理
 			// 此处的处理方式是假装连接失败，之后会断开重连重搜索服务的
 			// TODO: 如果设备故障，可能会陷入死循环
-			CommonResponseManager.getInstance().sendResponse(
-					new BluetoothGattEvent(gatt.getDevice().getAddress(),
-							BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
+			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 		} else {
-			CommonResponseManager.getInstance().sendResponse(
-					new BluetoothGattEvent(gatt.getDevice().getAddress(),
-							BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTED));
+			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTED));
+
+			// 连接建立好的时候，恢复请求任务
+			GattRequestManager.getInstance().resumeRequest(macAddress);
 		}
 	}
 
@@ -171,43 +160,92 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 	public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor,
 	                              int status) {
 		super.onDescriptorWrite(gatt, descriptor, status);
-		if (status != BluetoothGatt.GATT_SUCCESS) {
-			// TODO: 如果在此得知某个write操作失败的话，可以立即反馈，无需超时处理
-			return;
-		}
+		final String macAddress = gatt.getDevice().getAddress();
 		// 通常来说，执行到这里多半是和Notification/Indication设置有关
+		GattRequestManager.getInstance().confirmRequest(macAddress,
+				status == BluetoothGatt.GATT_SUCCESS);
+		if (status != BluetoothGatt.GATT_SUCCESS) {
+			// 可能是连接问题，所以尝试重连
+			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
+		}
+	}
+
+	@Override
+	public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+		super.onDescriptorRead(gatt, descriptor, status);
+		final String macAddress = gatt.getDevice().getAddress();
+		// 暂时未读过此属性，以后可能会读
+		GattRequestManager.getInstance().confirmRequest(macAddress,
+				status == BluetoothGatt.GATT_SUCCESS);
+		if (status != BluetoothGatt.GATT_SUCCESS) {
+			// 可能是连接问题，所以尝试重连
+			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
+		}
 	}
 
 	@Override
 	public void onCharacteristicWrite(BluetoothGatt gatt,
 	                                  BluetoothGattCharacteristic characteristic, int status) {
 		super.onCharacteristicWrite(gatt, characteristic, status);
+		final String macAddress = gatt.getDevice().getAddress();
+		// 虽然蓝牙规范中只要求writeType为Default时才有来自Server的response，而write without response是没
+		// 有来自Server的response的，但是Android的实现中，对write without response也是会在此有回调的，似乎
+		// 只是为了表示单方面发送成功
+		GattRequestManager.getInstance().confirmRequest(macAddress,
+				status == BluetoothGatt.GATT_SUCCESS);
 		if (status != BluetoothGatt.GATT_SUCCESS) {
-			// TODO: 如果在此得知某个write操作失败的话，可以立即反馈，无需超时处理
-			return;
+			// 可能是连接问题，所以尝试重连
+			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 		}
-		// write动作最好是确认一个成功再执行下一个
-	}
-
-	@Override
-	public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic
-			characteristic) {
-		super.onCharacteristicChanged(gatt, characteristic);
-		GattResponseManager.getInstance().receiveResponse(gatt.getDevice().getAddress(),
-				characteristic);
 	}
 
 	@Override
 	public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic,
 	                                 int status) {
 		super.onCharacteristicRead(gatt, characteristic, status);
-		if (status != BluetoothGatt.GATT_SUCCESS) {
-			// TODO: 如果在此得知某个read操作失败的话，可以立即反馈，无需超时处理
-
-			return;
+		final String macAddress = gatt.getDevice().getAddress();
+		// 向GattRequestManager通知read操作已完成
+		GattRequestManager.getInstance().confirmRequest(macAddress,
+				status == BluetoothGatt.GATT_SUCCESS);
+		if (status == BluetoothGatt.GATT_SUCCESS) {
+			// 如果接收成功的话，则将返回结果交由解析处理
+			GattResponseManager.getInstance().receiveResponse(macAddress,
+					characteristic);
+		} else {
+			// 可能是连接问题，所以尝试重连
+			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 		}
+	}
+
+	@Override
+	public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic
+			characteristic) {
+		super.onCharacteristicChanged(gatt, characteristic);
+		// 无论是Notification还是Indication，统一在此返回。
+		// 以下将返回结果交由解析处理。
 		GattResponseManager.getInstance().receiveResponse(gatt.getDevice().getAddress(),
 				characteristic);
+	}
+
+
+	/**
+	 * 禁断的代码，特殊情形下使用
+	 */
+	private void refreshCache(BluetoothGatt bluetoothGatt) {
+		try {
+			Method refresh = bluetoothGatt.getClass().getMethod("refresh", (Class[]) null);
+			refresh.invoke(bluetoothGatt, (Object[]) null);
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

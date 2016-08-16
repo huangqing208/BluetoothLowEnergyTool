@@ -1,4 +1,4 @@
-package cn.bit.hao.ble.tool.bluetooth.gatt.communication;
+package cn.bit.hao.ble.tool.service;
 
 import android.app.Service;
 import android.content.Intent;

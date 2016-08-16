@@ -36,16 +36,16 @@
 			android:screenOrientation="portrait">
 		</activity>
 
-		<service
+		<serviceUuid
 			android:name=".bluetooth.gatt.communication.CommunicationService"
 			android:enabled="true"
 			android:exported="false">
-		</service>
-		<service
+		</serviceUuid>
+		<serviceUuid
 			android:name=".bluetooth.state.MonitorBluetoothStateService"
 			android:enabled="true"
 			android:exported="false">
-		</service>
+		</serviceUuid>
 	</application>
 
 </manifest>

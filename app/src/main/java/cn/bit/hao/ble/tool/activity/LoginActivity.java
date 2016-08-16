@@ -389,7 +389,7 @@ public class LoginActivity extends GattCommunicationActivity implements LoaderCa
 
 		@Override
 		protected Boolean doInBackground(Void... params) {
-			// TODO: attempt authentication against a network service.
+			// TODO: attempt authentication against a network serviceUuid.
 
 			try {
 				// Simulate network access.
