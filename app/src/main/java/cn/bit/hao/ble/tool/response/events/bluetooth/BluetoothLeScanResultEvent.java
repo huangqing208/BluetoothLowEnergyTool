@@ -64,7 +64,8 @@ public class BluetoothLeScanResultEvent extends CommonResponseEvent {
 		StringBuilder sb = new StringBuilder();
 		sb.append("macAddress: ").append(macAddress).append("; ")
 				.append("rssi: ").append(rssi).append("; ")
-				.append("scanRecord: ").append(ByteBitUtil.byteArrayToHexString(scanRecord.getBytes()));
+				.append("scanRecord: ").append(ByteBitUtil.byteArrayToHexString(scanRecord.getBytes()))
+				.append("\n").append(scanRecord);
 		return sb.toString();
 	}
 }
