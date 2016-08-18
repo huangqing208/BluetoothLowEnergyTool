@@ -120,7 +120,7 @@ public class BluetoothLeScanManager implements CommonResponseListener {
 	 * 开启Le搜索
 	 * 注意，此方法会保证尽力搜索，即，在蓝牙开启的时候且有监听者时基本保证在搜索
 	 *
-	 * @return 如果在搜索的话返回true，否则返回false
+	 * @return 成功执行的话返回true，否则返回false
 	 */
 	public synchronized boolean startLeScan(CommonResponseListener listener) {
 		if (listener == null || scanListeners.contains(listener)) {

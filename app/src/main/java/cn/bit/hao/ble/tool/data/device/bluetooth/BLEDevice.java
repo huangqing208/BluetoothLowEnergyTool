@@ -4,20 +4,21 @@
 package cn.bit.hao.ble.tool.data.device.bluetooth;
 
 
+import java.util.UUID;
+
 import cn.bit.hao.ble.tool.application.Constants;
+import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUuid;
 import cn.bit.hao.ble.tool.protocol.GeneralProtocol;
-import cn.bit.hao.ble.tool.protocol.bluetooth.FirstKindBLEDeviceProtocol;
 import cn.bit.hao.ble.tool.response.events.CommunicationResponseEvent;
 import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
 
 /**
  * @author wuhao on 2016/7/14
  */
-public abstract class BLEDevice {
+public class BLEDevice {
 
 	protected static final int RESPONSE_CODE_BASE = Constants.FIELD_UPDATE_CODE_BASE + 0x01000000;
 
-	protected int value;
 	protected String friendlyName;
 
 	protected String macAddress;
@@ -41,7 +42,7 @@ public abstract class BLEDevice {
 	}
 
 	public void setFriendlyName(String friendlyName) {
-		if (this.friendlyName.equals(friendlyName)) {
+		if (this.friendlyName != null && this.friendlyName.equals(friendlyName)) {
 			return;
 		}
 		this.friendlyName = friendlyName;
@@ -56,9 +57,15 @@ public abstract class BLEDevice {
 	 * @param response 接收到的返回信息
 	 * @return 如果数据被处理完则返回true，否则返回false
 	 */
-	public boolean parse(byte[] response) {
-		// 假设有条返回同时包含了新的name值和新的son value
-		boolean parseFinished = false;
+	public boolean parse(UUID serviceUuid, UUID characteristicUuid, byte[] response) {
+		if (serviceUuid.equals(BluetoothUuid.GENERIC_ACCESS_PROFILE_SERVICE)) {
+			if (characteristicUuid.equals(BluetoothUuid.GAP_DEVICE_NAME_CHARACTERISTIC)) {
+				setFriendlyName(new String(response));
+				return true;
+			}
+		}
+
+		// 以下是假设的自定义协议，且假设返回了新的name值
 		switch (response[0]) {
 			case GeneralProtocol.SET_FRIENDLY_CODE: {
 				//==================================================================================
@@ -66,24 +73,12 @@ public abstract class BLEDevice {
 
 				//==================================================================================
 				// 假装friendlyName有变化
-				setFriendlyName("New name");
-				parseFinished = true;
-				break;
-			}
-			case FirstKindBLEDeviceProtocol.QUERY_SON_VALUE_AND_FRIENDLY_NAME_CODE: {
-				//==================================================================================
-				// 具体的解析过程在此
-
-				//==================================================================================
-				// 假装friendlyName有变化
-				setFriendlyName("New friendly name");
-				// 以下这行要不要吧，无所谓
-				parseFinished = false;
-				break;
+				setFriendlyName("A friendly name");
+				return true;
 			}
 			default:
 				break;
 		}
-		return parseFinished;
+		return false;
 	}
 }

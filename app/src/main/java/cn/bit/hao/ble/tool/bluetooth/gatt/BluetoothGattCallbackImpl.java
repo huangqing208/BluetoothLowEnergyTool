@@ -13,6 +13,7 @@ import android.util.Log;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -213,7 +214,8 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 		if (status == BluetoothGatt.GATT_SUCCESS) {
 			// 如果接收成功的话，则将返回结果交由解析处理
 			GattResponseManager.getInstance().receiveResponse(macAddress,
-					characteristic);
+					characteristic.getService().getUuid(), characteristic.getUuid(),
+					Arrays.copyOf(characteristic.getValue(), characteristic.getValue().length));
 		} else {
 			// 可能是连接问题，所以尝试重连
 			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
@@ -228,7 +230,8 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 		// 无论是Notification还是Indication，统一在此返回。
 		// 以下将返回结果交由解析处理。
 		GattResponseManager.getInstance().receiveResponse(gatt.getDevice().getAddress(),
-				characteristic);
+				characteristic.getService().getUuid(), characteristic.getUuid(),
+				Arrays.copyOf(characteristic.getValue(), characteristic.getValue().length));
 	}
 
 

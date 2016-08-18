@@ -82,11 +82,28 @@ public final class BluetoothUuid {
 	public static final ParcelUuid BASE_UUID =
 			ParcelUuid.fromString("00000000-0000-1000-8000-00805F9B34FB");
 
+
 	/**
 	 * Core 4.2 Vol 3 Part G Section 3.3.3.3 P2228
 	 */
 	public static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION =
 			UUID.fromString("00002902-0000-1000-8000-00805F9B34FB");
+	/**
+	 * https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.generic_access.xml
+	 */
+	public static final UUID GENERIC_ACCESS_PROFILE_SERVICE
+			= UUID.fromString("00001800-0000-1000-8000-00805F9B34FB");
+	/**
+	 * https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.gap.device_name.xml
+	 */
+	public static final UUID GAP_DEVICE_NAME_CHARACTERISTIC
+			= UUID.fromString("00002A00-0000-1000-8000-00805F9B34FB");
+	/**
+	 * https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.gap.appearance.xml
+	 */
+	public static final UUID GAP_APPEARANCE
+			= UUID.fromString("00002A01-0000-1000-8000-00805F9B34FB");
+
 
 	/**
 	 * Length of bytes for 16 bit UUID
@@ -237,7 +254,7 @@ public final class BluetoothUuid {
 	 * this function will return 110B
 	 *
 	 * @param parcelUuid
-	 * @return the serviceUuid identifier.
+	 * @return the service identifier.
 	 */
 	public static int getServiceIdentifierFromParcelUuid(ParcelUuid parcelUuid) {
 		UUID uuid = parcelUuid.getUuid();

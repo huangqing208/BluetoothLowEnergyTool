@@ -82,7 +82,7 @@ public class ScanRecordCompat implements Cloneable {
 	}
 
 	/**
-	 * Returns a list of serviceUuid UUIDs within the advertisement that are used to identify the
+	 * Returns a list of service UUIDs within the advertisement that are used to identify the
 	 * bluetooth GATT services.
 	 */
 	public List<ParcelUuid> getServiceUuids() {
@@ -107,14 +107,14 @@ public class ScanRecordCompat implements Cloneable {
 	}
 
 	/**
-	 * Returns a map of serviceUuid UUID and its corresponding serviceUuid data.
+	 * Returns a map of service UUID and its corresponding service data.
 	 */
 	public Map<ParcelUuid, byte[]> getServiceData() {
 		return mServiceData;
 	}
 
 	/**
-	 * Returns the serviceUuid data byte array associated with the {@code serviceUuid}. Returns
+	 * Returns the service data byte array associated with the {@code service}. Returns
 	 * {@code null} if the {@code serviceDataUuid} is not found.
 	 */
 	@Nullable
@@ -252,8 +252,8 @@ public class ScanRecordCompat implements Cloneable {
 						txPowerLevel = scanRecord[currentPos];
 						break;
 					case DATA_TYPE_SERVICE_DATA:
-						// The first two bytes of the serviceUuid data are serviceUuid data UUID in little
-						// endian. The rest bytes are serviceUuid data.
+						// The first two bytes of the service data are service data UUID in little
+						// endian. The rest bytes are service data.
 						int serviceUuidLength = BluetoothUuid.UUID_BYTES_16_BIT;
 						byte[] serviceDataUuidBytes = extractBytes(scanRecord, currentPos,
 								serviceUuidLength);
@@ -300,7 +300,7 @@ public class ScanRecordCompat implements Cloneable {
 				+ ", mTxPowerLevel=" + mTxPowerLevel + ", mDeviceName=" + mDeviceName + "]";
 	}
 
-	// Parse serviceUuid UUIDs.
+	// Parse service UUIDs.
 	private static int parseServiceUuid(byte[] scanRecord, int currentPos, int dataLength,
 	                                    int uuidLength, List<ParcelUuid> serviceUuids) {
 		while (dataLength > 0) {

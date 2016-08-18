@@ -13,7 +13,6 @@ import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -98,7 +97,8 @@ public class BluetoothGattManager implements CommonResponseListener {
 	}
 
 	/**
-	 * 添加指定设备，当搜索到对应的设备的广播时才会去连接
+	 * 添加指定设备，当搜索到对应的设备的广播时才会去连接。
+	 * 注意：无需预先开启搜索，此方法会自己开启搜索的。
 	 *
 	 * @param macAddress 目标设备mac地址
 	 * @return 如果添加成功则返回true，否则返回false
@@ -211,7 +211,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 	/**
 	 * 断开和指定设备的Gatt连接。
 	 * 注意：返回true只表明执行成功，而要在系统对应回调后才能保证实际意义上的连接断开。
-	 * 此方法不可连续对同一设备执行，不会出错，但不推荐。
+	 * 此方法不建议连续对同一设备执行，不会出错，但不推荐。
 	 *
 	 * @param macAddress 目标设备的mac地址
 	 */
@@ -230,12 +230,6 @@ public class BluetoothGattManager implements CommonResponseListener {
 			}
 		}
 
-//		// 如果尝试连接但没连接上的话，直接remove掉就行了
-//		if (!isDeviceConnected(macAddress)) {
-//			removeDevice(macAddress);
-//			return;
-//		}
-
 		// 设备是有连接的，那么就断开连接好了
 		bluetoothGatt.disconnect();
 		Log.i(TAG, "disconnectGatt " + macAddress);
@@ -250,6 +244,15 @@ public class BluetoothGattManager implements CommonResponseListener {
 		}, DISCONNECTING_TIMEOUT);
 	}
 
+	private void disconnectGatt(String macAddress) {
+		synchronized (bluetoothGattMap) {
+			BluetoothGatt bluetoothGatt = bluetoothGattMap.get(macAddress);
+			if (bluetoothGatt != null) {
+				bluetoothGatt.disconnect();
+			}
+		}
+	}
+
 	/**
 	 * 断开和目标设备的Gatt连接。
 	 * 注意：仅仅影响Gatt工作的终结，并不意味着不会再次连接此设备。
@@ -259,9 +262,6 @@ public class BluetoothGattManager implements CommonResponseListener {
 	private void closeGatt(String macAddress) {
 		// 置空意味着释放，在别处查询或使用的过程中，如果尽早的知道了被释放其实是OK的，所以不必刻意的加锁
 		synchronized (bluetoothGattMap) {
-			if (!bluetoothGattMap.containsKey(macAddress)) {
-				return;
-			}
 			BluetoothGatt bluetoothGatt = bluetoothGattMap.get(macAddress);
 			if (bluetoothGatt == null) {
 				return;
@@ -310,22 +310,6 @@ public class BluetoothGattManager implements CommonResponseListener {
 	 * 调用此方法可以结束所有工作，和initManager应当结对出现
 	 */
 	public void finish() {
-		// 以下演示两种轮询删除item的写法
-		synchronized (timeoutMap) {
-			// 这种写法是较流行的写法，似乎比较正统，删除多个item无误
-			// 但是，轮询过程还是无法保证线程安全，所以加synchronized
-			Iterator<Map.Entry<String, Map<TimeoutType, Runnable>>> timeoutMapIterator = timeoutMap.entrySet().iterator();
-			while (timeoutMapIterator.hasNext()) {
-				Map.Entry<String, Map<TimeoutType, Runnable>> tasks = timeoutMapIterator.next();
-				Iterator<Map.Entry<TimeoutType, Runnable>> tasksIterator = tasks.getValue().entrySet().iterator();
-				while (tasksIterator.hasNext()) {
-					handler.removeCallbacks(tasksIterator.next().getValue());
-					tasksIterator.remove();
-				}
-				timeoutMapIterator.remove();
-			}
-		}
-
 		synchronized (bluetoothGattMap) {
 			// 这个写法坦白说，没在网上找到雷同的做法，但是删除多个item亦妥妥滴
 			// 当然，因为其实是多次单个删除，并非迭代器，效率什么的不清楚
@@ -333,6 +317,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 			// 感觉相比起流行写法来说，这种写法更简洁
 			String[] macAddresses = bluetoothGattMap.keySet().toArray(new String[0]);
 			for (String macAddress : macAddresses) {
+				disconnectGatt(macAddress);
 				removeDevice(macAddress);
 			}
 		}
@@ -430,8 +415,8 @@ public class BluetoothGattManager implements CommonResponseListener {
 		// 如果是被动的断开了连接或者是连接超时，考虑重新连接
 		closeGatt(macAddress);
 		// TODO: 是否立即重连，还是检测有广播了再重连？
-//                  // 方案1：立即重连
-//					connectDevice(macAddress);
+//        // 方案1：立即重连
+//		connectDevice(macAddress);
 		// 方案2：开启搜索
 		connectDeviceWhenValid(macAddress);
 	}
@@ -466,7 +451,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 			String macAddress = ((BluetoothGattEvent) commonResponseEvent).getMacAddress();
 			switch (((BluetoothGattEvent) commonResponseEvent).getEventCode()) {
 				case GATT_CONNECTED:
-					// 这个连接并不一定指的是连接建立的时候，很可能是连接并且查询到服务列表的时候
+					// 这个连接并不指的是连接建立的时候，而是连接并且查询到服务列表的时候
 					cancelTimeout(macAddress, TimeoutType.TYPE_CONNECT_TIMEOUT);
 					break;
 				case GATT_DISCONNECTED:
@@ -490,10 +475,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 					// 意想不到的逻辑而认为自己已连接，于是停止广播，手机端故而无法获得BLE端广播。所以解决办法
 					// 有二：一是手机端显式取消尝试连接，令BLE获悉；二是BLE端也必须得做到检测长时间无连接需要
 					// 恢复状态（可连接并广播状态）
-					BluetoothGatt bluetoothGatt = bluetoothGattMap.get(macAddress);
-					if (bluetoothGatt != null) {
-						bluetoothGatt.disconnect();
-					}
+					disconnectGatt(macAddress);
 					onGattConnectionError(macAddress);
 					break;
 				default:

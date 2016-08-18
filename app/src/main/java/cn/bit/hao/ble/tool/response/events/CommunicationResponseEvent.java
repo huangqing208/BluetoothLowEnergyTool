@@ -19,11 +19,6 @@ public class CommunicationResponseEvent extends CommonResponseEvent {
 		this.fieldCode = eventCode;
 	}
 
-	public CommunicationResponseEvent(CommunicationResponseEvent communicationResponseEvent) {
-		this.macAddress = communicationResponseEvent.macAddress;
-		this.fieldCode = communicationResponseEvent.fieldCode;
-	}
-
 	public String getMacAddress() {
 		return macAddress;
 	}

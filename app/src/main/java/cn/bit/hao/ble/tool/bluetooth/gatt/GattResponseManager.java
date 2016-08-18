@@ -3,9 +3,7 @@
  */
 package cn.bit.hao.ble.tool.bluetooth.gatt;
 
-import android.bluetooth.BluetoothGattCharacteristic;
-
-import cn.bit.hao.ble.tool.data.DeviceStore;
+import java.util.UUID;
 
 /**
  * 设备返回的接收处理
@@ -28,9 +26,24 @@ public class GattResponseManager {
 		return instance;
 	}
 
-	public void receiveResponse(String macAddress, BluetoothGattCharacteristic characteristic) {
-		// 在此判断返回的characteristic是否是预期的那个，如果是的话，才允许后续
-		DeviceStore.getInstance().parseResponse(macAddress, characteristic.getValue());
+	private GattResponseListener gattResponseListener;
+
+	public void setGattResponseListener(GattResponseListener gattResponseListener) {
+		this.gattResponseListener = gattResponseListener;
+	}
+
+	/**
+	 * 接收来自目标characteristic的信息反馈，并转发给
+	 *
+	 * @param macAddress         目标设备mac地址
+	 * @param serviceUuid        对应的service UUID
+	 * @param characteristicUuid 对应的characteristic UUID
+	 * @param content            characteristic值的副本
+	 */
+	/*package*/ void receiveResponse(String macAddress, UUID serviceUuid, UUID characteristicUuid, byte[] content) {
+		if (gattResponseListener != null) {
+			gattResponseListener.parseGattResponse(macAddress, serviceUuid, characteristicUuid, content);
+		}
 	}
 
 }

@@ -12,8 +12,6 @@ import android.os.IBinder;
 import android.util.Log;
 
 import cn.bit.hao.ble.tool.service.CommunicationService;
-import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
-import cn.bit.hao.ble.tool.response.events.CommunicationResponseEvent;
 
 /**
  * 此Activity是做Gatt通信的Activity的父类，保障子类的通信功能。
@@ -24,7 +22,7 @@ import cn.bit.hao.ble.tool.response.events.CommunicationResponseEvent;
 public abstract class GattCommunicationActivity extends BaseActivity {
 	private static final String TAG = GattCommunicationActivity.class.getSimpleName();
 
-	private CommunicationService communicationService;
+	protected CommunicationService communicationService;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +49,7 @@ public abstract class GattCommunicationActivity extends BaseActivity {
 			Log.e(TAG, "MyService crashed!!");
 			unbindCommunicationService();
 
-			// rebind serviceUuid
+			// rebind service
 			bindCommunicationService();
 		}
 	};
@@ -60,6 +58,8 @@ public abstract class GattCommunicationActivity extends BaseActivity {
 	 * 自此开始Activity可以和Service通信
 	 */
 	protected abstract void onCommunicationServiceBound();
+
+	protected abstract void beforeCommunicationServiceUnbound();
 
 	private void unbindCommunicationService() {
 		if (communicationService != null) {
@@ -71,6 +71,7 @@ public abstract class GattCommunicationActivity extends BaseActivity {
 	@Override
 	protected void onPause() {
 		super.onPause();
+		beforeCommunicationServiceUnbound();
 		if (isFinishing()) {
 			unbindCommunicationService();
 		}
@@ -80,15 +81,8 @@ public abstract class GattCommunicationActivity extends BaseActivity {
 		if (communicationService == null) {
 			return false;
 		}
-		communicationService.writeCommand(macAddress, command);
+		communicationService.writeCharacteristic(macAddress, command);
 		return true;
 	}
 
-	@Override
-	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
-		super.onCommonResponded(commonResponseEvent);
-		if (commonResponseEvent instanceof CommunicationResponseEvent) {
-
-		}
-	}
 }

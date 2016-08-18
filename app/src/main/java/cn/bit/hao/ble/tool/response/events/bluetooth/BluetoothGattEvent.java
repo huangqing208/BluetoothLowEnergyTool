@@ -31,11 +31,6 @@ public class BluetoothGattEvent extends CommonResponseEvent {
 		this.eventCode = eventCode;
 	}
 
-	public BluetoothGattEvent(BluetoothGattEvent bluetoothGattEvent) {
-		this.macAddress = bluetoothGattEvent.macAddress;
-		this.eventCode = bluetoothGattEvent.eventCode;
-	}
-
 	public BluetoothGattCode getEventCode() {
 		return eventCode;
 	}

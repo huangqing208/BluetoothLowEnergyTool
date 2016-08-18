@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '22.0.1'
+    buildToolsVersion '24.0.1'
 
     defaultConfig {
         applicationId "cn.bit.hao.ble.tool"
@@ -23,7 +23,7 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.kaopiz:kprogresshud:1.0.5'
-//    compile 'com.bugull.android:bugu-android-lib:0.0.1'
+    //    compile 'com.bugull.android:bugu-android-lib:0.0.1'
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.android.support:design:23.4.0'
 }

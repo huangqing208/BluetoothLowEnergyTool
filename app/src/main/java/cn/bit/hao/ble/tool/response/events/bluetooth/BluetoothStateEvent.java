@@ -23,10 +23,6 @@ public class BluetoothStateEvent extends CommonResponseEvent {
 		this.eventCode = eventCode;
 	}
 
-	public BluetoothStateEvent(BluetoothStateEvent bluetoothStateEvent) {
-		this.eventCode = bluetoothStateEvent.eventCode;
-	}
-
 	public BluetoothStateCode getEventCode() {
 		return eventCode;
 	}

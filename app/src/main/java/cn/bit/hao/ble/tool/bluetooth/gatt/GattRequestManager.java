@@ -16,6 +16,7 @@ import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUuid;
 
 /**
  * 接收来自UI的各种命令，将其缓存到队列中按序发出
+ * 注意：此中的方法在有Gatt连接的时候才能调用
  *
  * @author wuhao on 2016/8/9
  */
@@ -42,13 +43,22 @@ public class GattRequestManager {
 		return instance;
 	}
 
-	private boolean addGattRequestTask(String macAddress, GattRequestTask requestTask) {
+	/**
+	 * 把任务添加到相对应的请求队列
+	 *
+	 * @param macAddress  目标设备mac地址
+	 * @param requestTask 请求任务
+	 * @param prior       是否是优先任务，优先任务队列会先于普通任务队列执行
+	 * @return 如果添加成功则返回true，否则返回false
+	 */
+	private boolean addGattRequestTask(String macAddress, GattRequestTask requestTask, boolean prior) {
 		GattRequestQueue requestQueue = requestQueues.get(macAddress);
 		if (requestQueue == null) {
 			requestQueue = new GattRequestQueue(macAddress);
 			requestQueues.put(macAddress, requestQueue);
 		}
-		boolean result = requestQueue.addGattRequestTask(requestTask);
+		boolean result = prior ? requestQueue.addPriorRequestTask(requestTask)
+				: requestQueue.addCommonRequestTask(requestTask);
 		if (result) {
 			requestQueue.performNextTask();
 		}
@@ -102,7 +112,7 @@ public class GattRequestManager {
 
 		GattRequestTask newTask = new GattNotificationTask(macAddress, service,
 				characteristic, notificationType, enable);
-		return addGattRequestTask(macAddress, newTask);
+		return addGattRequestTask(macAddress, newTask, true);
 	}
 
 	/**
@@ -154,7 +164,7 @@ public class GattRequestManager {
 
 		GattRequestTask newTask = new GattWriteTask(macAddress, serviceUuid,
 				characteristicUuid, writeType, content);
-		return addGattRequestTask(macAddress, newTask);
+		return addGattRequestTask(macAddress, newTask, false);
 	}
 
 	public synchronized boolean readCharacteristic(String macAddress, UUID serviceUuid,
@@ -172,7 +182,7 @@ public class GattRequestManager {
 
 		GattRequestTask newTask = new GattReadTask(macAddress, serviceUuid,
 				characteristicUuid);
-		return addGattRequestTask(macAddress, newTask);
+		return addGattRequestTask(macAddress, newTask, false);
 	}
 
 	/**
@@ -183,7 +193,7 @@ public class GattRequestManager {
 	/*package*/ void resumeRequest(String macAddress) {
 		GattRequestQueue requestQueue = requestQueues.get(macAddress);
 		if (requestQueue != null) {
-			requestQueue.resumePerform();
+			requestQueue.performNextTask();
 		}
 	}
 

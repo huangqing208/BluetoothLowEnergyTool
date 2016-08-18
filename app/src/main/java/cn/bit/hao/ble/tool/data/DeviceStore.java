@@ -5,13 +5,16 @@ package cn.bit.hao.ble.tool.data;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
+import cn.bit.hao.ble.tool.bluetooth.gatt.GattResponseListener;
+import cn.bit.hao.ble.tool.bluetooth.gatt.GattResponseManager;
 import cn.bit.hao.ble.tool.data.device.bluetooth.BLEDevice;
 
 /**
  * @author wuhao on 2016/7/14
  */
-public class DeviceStore {
+public class DeviceStore implements GattResponseListener {
 
 	private Map<String, BLEDevice> bleDeviceMap;
 
@@ -24,6 +27,7 @@ public class DeviceStore {
 	public static synchronized DeviceStore getInstance() {
 		if (instance == null) {
 			instance = new DeviceStore();
+			GattResponseManager.getInstance().setGattResponseListener(instance);
 		}
 		return instance;
 	}
@@ -52,12 +56,14 @@ public class DeviceStore {
 		return true;
 	}
 
-	public boolean parseResponse(String macAddress, byte[] response) {
+	@Override
+	public boolean parseGattResponse(String macAddress, UUID serviceUuid, UUID characteristicUuid,
+	                                 byte[] content) {
 		BLEDevice device = getDevice(macAddress);
 		if (device == null) {
 			return false;
 		}
-		device.parse(response);
+		device.parse(serviceUuid, characteristicUuid, content);
 		return true;
 	}
 }

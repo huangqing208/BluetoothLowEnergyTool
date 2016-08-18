@@ -8,6 +8,7 @@ package cn.bit.hao.ble.tool.protocol;
  */
 public class GeneralProtocol {
 
+	// 假设自定义协议有如下帧头标记
 	public static final int SET_FRIENDLY_CODE = 0x22;
 
 }

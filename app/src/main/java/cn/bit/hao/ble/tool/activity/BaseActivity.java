@@ -8,13 +8,14 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import cn.bit.hao.ble.tool.bluetooth.state.BluetoothStateManager;
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUtil;
 import cn.bit.hao.ble.tool.response.callbacks.CommonResponseListener;
+import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothStateEvent;
-import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
 import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
 
 /**
@@ -97,6 +98,7 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 			switch (((BluetoothLeScanEvent) commonResponseEvent).getBluetoothLeScanCode()) {
 				case LE_SCAN_TIMEOUT:
 					// TODO: show a dialog ask for reset bluetooth
+					Toast.makeText(this, "resetting bluetooth...", Toast.LENGTH_SHORT).show();
 					BluetoothStateManager.getInstance().resetBluetooth();
 					break;
 				case LE_SCAN_FAILED:
@@ -106,7 +108,7 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 		}
 	}
 
-	//=============Test Code Below=================================
+	//=============Test Code Start=================================
 	private void showDialog(String content) {
 		TextView textView = new TextView(this);
 		textView.setPadding(200, 100, 200, 100);
