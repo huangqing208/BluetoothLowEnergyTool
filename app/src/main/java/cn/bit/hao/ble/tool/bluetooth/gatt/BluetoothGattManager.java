@@ -230,10 +230,6 @@ public class BluetoothGattManager implements CommonResponseListener {
 			}
 		}
 
-		// 设备是有连接的，那么就断开连接好了
-		bluetoothGatt.disconnect();
-		Log.i(TAG, "disconnectGatt " + macAddress);
-
 		// 给断开连接加个超时检测
 		setTimeout(macAddress, TimeoutType.TYPE_DISCONNECT_TIMEOUT, new Runnable() {
 			@Override
@@ -242,6 +238,10 @@ public class BluetoothGattManager implements CommonResponseListener {
 				removeDevice(macAddress);
 			}
 		}, DISCONNECTING_TIMEOUT);
+
+		// 设备是有连接的，那么就断开连接好了
+		bluetoothGatt.disconnect();
+		Log.i(TAG, "disconnectGatt " + macAddress);
 	}
 
 	private void disconnectGatt(String macAddress) {

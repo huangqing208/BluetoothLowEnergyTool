@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 import cn.bit.hao.ble.tool.R;
-import cn.bit.hao.ble.tool.application.App;
 import cn.bit.hao.ble.tool.application.Constants;
 import cn.bit.hao.ble.tool.bluetooth.utils.ScanRecordCompat;
 import cn.bit.hao.ble.tool.data.DeviceStore;
@@ -27,12 +26,14 @@ public class MainActivity extends GattCommunicationActivity {
 	private TextView helloWorld;
 	private TextView deviceName;
 
+	private static final String TARGET_DEVICE_ADDRESS = "00:02:5B:00:25:13";
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		DeviceStore.getInstance().addDevice(new BLEDevice("00:02:5B:00:25:13"));
+		DeviceStore.getInstance().addDevice(new BLEDevice(TARGET_DEVICE_ADDRESS));
 
 		helloWorld = (TextView) findViewById(R.id.hello_world);
 		deviceName = (TextView) findViewById(R.id.device_name);
@@ -41,13 +42,13 @@ public class MainActivity extends GattCommunicationActivity {
 	@Override
 	protected void onCommunicationServiceBound() {
 //		communicationService.startLeScan();
-		communicationService.connectDevice("00:02:5B:00:25:13");
+		communicationService.connectDevice(TARGET_DEVICE_ADDRESS);
 	}
 
 	@Override
 	protected void beforeCommunicationServiceUnbound() {
-		communicationService.stopLeScan();
-		communicationService.disconnectDevice("00:02:5B:00:25:13");
+//		communicationService.stopLeScan();
+		communicationService.disconnectDevice(TARGET_DEVICE_ADDRESS);
 	}
 
 	private int count;
@@ -58,6 +59,7 @@ public class MainActivity extends GattCommunicationActivity {
 		super.onStart();
 		// 界面呈现时，旧数据陈旧可信度不一定高，考虑清空重来
 		scanResults.clear();
+		deviceName.setText(DeviceStore.getInstance().getDevice(TARGET_DEVICE_ADDRESS).getFriendlyName());
 	}
 
 	@Override
@@ -85,7 +87,7 @@ public class MainActivity extends GattCommunicationActivity {
 					Toast.makeText(MainActivity.this, "scan timeout", Toast.LENGTH_SHORT).show();
 					break;
 				case GATT_CONNECTED:
-					communicationService.readCharacteristic("00:02:5B:00:25:13");
+					communicationService.readCharacteristic(TARGET_DEVICE_ADDRESS);
 					break;
 				case GATT_CONNECT_TIMEOUT:
 				case GATT_DISCONNECTED:
@@ -114,8 +116,8 @@ public class MainActivity extends GattCommunicationActivity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if (isFinishing()) {
-			App.getInstance().exitApp();
-		}
+//		if (isFinishing()) {
+//			App.getInstance().exitApp();
+//		}
 	}
 }
