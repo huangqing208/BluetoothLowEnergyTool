@@ -71,8 +71,8 @@ public abstract class GattCommunicationActivity extends BaseActivity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		beforeCommunicationServiceUnbound();
 		if (isFinishing()) {
+			beforeCommunicationServiceUnbound();
 			unbindCommunicationService();
 		}
 	}

@@ -1,16 +1,20 @@
 package cn.bit.hao.ble.tool.activity;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.ParcelUuid;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import cn.bit.hao.ble.tool.R;
+import cn.bit.hao.ble.tool.application.App;
 import cn.bit.hao.ble.tool.application.Constants;
 import cn.bit.hao.ble.tool.bluetooth.utils.ScanRecordCompat;
 import cn.bit.hao.ble.tool.data.DeviceStore;
@@ -25,6 +29,7 @@ public class MainActivity extends GattCommunicationActivity {
 
 	private TextView helloWorld;
 	private TextView deviceName;
+	private CoordinatorLayout coordinatorLayout;
 
 	private static final String TARGET_DEVICE_ADDRESS = "00:02:5B:00:25:13";
 
@@ -37,22 +42,15 @@ public class MainActivity extends GattCommunicationActivity {
 
 		helloWorld = (TextView) findViewById(R.id.hello_world);
 		deviceName = (TextView) findViewById(R.id.device_name);
+		coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator);
+		Snackbar.make(coordinatorLayout, "Just \n Wave", Snackbar.LENGTH_SHORT).setAction("OK",
+				new View.OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						Snackbar.make(coordinatorLayout, "Fine", Snackbar.LENGTH_SHORT).show();
+					}
+				}).setActionTextColor(Color.YELLOW).show();
 	}
-
-	@Override
-	protected void onCommunicationServiceBound() {
-//		communicationService.startLeScan();
-		communicationService.connectDevice(TARGET_DEVICE_ADDRESS);
-	}
-
-	@Override
-	protected void beforeCommunicationServiceUnbound() {
-//		communicationService.stopLeScan();
-		communicationService.disconnectDevice(TARGET_DEVICE_ADDRESS);
-	}
-
-	private int count;
-	private Map<String, ScanRecordCompat> scanResults = new HashMap<>();
 
 	@Override
 	protected void onStart() {
@@ -61,6 +59,29 @@ public class MainActivity extends GattCommunicationActivity {
 		scanResults.clear();
 		deviceName.setText(DeviceStore.getInstance().getDevice(TARGET_DEVICE_ADDRESS).getFriendlyName());
 	}
+
+	@Override
+	protected void onCommunicationServiceBound() {
+		communicationService.startLeScan();
+//		communicationService.connectDevice(TARGET_DEVICE_ADDRESS);
+	}
+
+	@Override
+	protected void beforeCommunicationServiceUnbound() {
+		communicationService.stopLeScan();
+//		communicationService.disconnectDevice(TARGET_DEVICE_ADDRESS);
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if (isFinishing()) {
+			App.getInstance().exitApp();
+		}
+	}
+
+	private int count;
+	private Map<String, ScanRecordCompat> scanResults = new HashMap<>();
 
 	@Override
 	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
@@ -84,7 +105,7 @@ public class MainActivity extends GattCommunicationActivity {
 			String macAddress = ((BluetoothGattEvent) commonResponseEvent).getMacAddress();
 			switch (((BluetoothGattEvent) commonResponseEvent).getEventCode()) {
 				case GATT_SCAN_DEVICE_TIMEOUT:
-					Toast.makeText(MainActivity.this, "scan timeout", Toast.LENGTH_SHORT).show();
+					Snackbar.make(coordinatorLayout, "scan timeout", Snackbar.LENGTH_SHORT).show();
 					break;
 				case GATT_CONNECTED:
 					communicationService.readCharacteristic(TARGET_DEVICE_ADDRESS);
@@ -93,7 +114,7 @@ public class MainActivity extends GattCommunicationActivity {
 				case GATT_DISCONNECTED:
 				case GATT_CONNECTION_ERROR:
 				case GATT_REMOTE_DISAPPEARED:
-					Toast.makeText(MainActivity.this, "connection error", Toast.LENGTH_SHORT).show();
+					Snackbar.make(coordinatorLayout, "connection error", Snackbar.LENGTH_SHORT).show();
 					break;
 				default:
 					break;
@@ -111,13 +132,5 @@ public class MainActivity extends GattCommunicationActivity {
 				}
 			}
 		}
-	}
-
-	@Override
-	protected void onPause() {
-		super.onPause();
-//		if (isFinishing()) {
-//			App.getInstance().exitApp();
-//		}
 	}
 }

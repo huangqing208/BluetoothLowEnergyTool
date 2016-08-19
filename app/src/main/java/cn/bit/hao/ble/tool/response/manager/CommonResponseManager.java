@@ -68,9 +68,19 @@ public class CommonResponseManager {
 
 	/**
 	 * 取消对UI的回调返回。
+	 *
+	 * @param uiCallback 取消对指定UI回调的返回
 	 */
-	public void unregisterUINotification() {
-		notifyUI = false;
+	public void unregisterUINotification(CommonResponseListener uiCallback) {
+		synchronized (uiCallbacks) {
+			if (uiCallback == null) {
+				return;
+			}
+			int size = uiCallbacks.size();
+			if (size > 0 && uiCallbacks.get(size - 1).equals(uiCallback)) {
+				notifyUI = false;
+			}
+		}
 	}
 
 	public boolean addUICallback(CommonResponseListener callback) {
