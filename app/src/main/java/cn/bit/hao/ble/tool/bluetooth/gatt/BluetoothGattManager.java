@@ -159,27 +159,31 @@ public class BluetoothGattManager implements CommonResponseListener {
 			}
 
 			BluetoothDevice bluetoothDevice = BluetoothUtil.getBluetoothDevice(context, macAddress);
-			// We want to directly connect to the device, so we are setting the autoConnect
-			// parameter to false.
-			BluetoothGatt bluetoothGatt = bluetoothDevice.connectGatt(context, false,
-					new BluetoothGattCallbackImpl());
-			Log.i(TAG, "Connect new Gatt " + macAddress + " " + bluetoothGatt.toString());
+			BluetoothGatt bluetoothGatt;
+			synchronized (TimeoutType.TYPE_CONNECT_TIMEOUT) {
+				// We want to directly connect to the device, so we are setting the autoConnect
+				// parameter to false.
+				bluetoothGatt = bluetoothDevice.connectGatt(context, false,
+						new BluetoothGattCallbackImpl());
+				Log.i(TAG, "Connect new Gatt " + macAddress + " " + bluetoothGatt.toString());
+
+				// 系统自带的超时检测是30s，可以人为的在应用层加自定义的超时检测，当然，超时设置通常在30s以内
+				setTimeout(macAddress, TimeoutType.TYPE_CONNECT_TIMEOUT, new Runnable() {
+					@Override
+					public void run() {
+						CommonResponseManager.getInstance().sendResponse(
+								new BluetoothGattEvent(macAddress,
+										BluetoothGattEvent.BluetoothGattCode.GATT_CONNECT_TIMEOUT));
+					}
+				}, CONNECTING_TIMEOUT);
+			}
+
 			bluetoothGattMap.put(macAddress, bluetoothGatt);
 
 			// 如果所有Gatt均已建立，那么也就无需继续搜索了
 			if (!bluetoothGattMap.containsValue(null)) {
 				BluetoothLeScanManager.getInstance().stopLeScan(this);
 			}
-
-			// 系统自带的超时检测是30s，可以人为的在应用层加自定义的超时检测，当然，超时设置通常在30s以内
-			setTimeout(macAddress, TimeoutType.TYPE_CONNECT_TIMEOUT, new Runnable() {
-				@Override
-				public void run() {
-					CommonResponseManager.getInstance().sendResponse(
-							new BluetoothGattEvent(macAddress,
-									BluetoothGattEvent.BluetoothGattCode.GATT_CONNECT_TIMEOUT));
-				}
-			}, CONNECTING_TIMEOUT);
 
 			return true;
 		}
@@ -230,18 +234,27 @@ public class BluetoothGattManager implements CommonResponseListener {
 			}
 		}
 
-		// 给断开连接加个超时检测
-		setTimeout(macAddress, TimeoutType.TYPE_DISCONNECT_TIMEOUT, new Runnable() {
-			@Override
-			public void run() {
-				// 如果断开连接超时，则删除设备与连接
+		boolean connected = isDeviceConnected(macAddress);
+		// 防止在disconnect调用后，又setTimeout之前时，GATT_DISCONNECTED已先到的情况，所以在此加上同步处理
+		synchronized (TimeoutType.TYPE_DISCONNECT_TIMEOUT) {
+			// 设备是有连接的，那么就断开连接好了
+			bluetoothGatt.disconnect();
+			Log.i(TAG, "disconnectGatt " + macAddress);
+
+			if (connected) {
+				// 给断开连接加个超时检测
+				setTimeout(macAddress, TimeoutType.TYPE_DISCONNECT_TIMEOUT, new Runnable() {
+					@Override
+					public void run() {
+						// 如果断开连接超时，则删除设备与连接
+						removeDevice(macAddress);
+					}
+				}, DISCONNECTING_TIMEOUT);
+			} else {
+				// 如果连接尚未建立，则断开连接并删除设备
 				removeDevice(macAddress);
 			}
-		}, DISCONNECTING_TIMEOUT);
-
-		// 设备是有连接的，那么就断开连接好了
-		bluetoothGatt.disconnect();
-		Log.i(TAG, "disconnectGatt " + macAddress);
+		}
 	}
 
 	private void disconnectGatt(String macAddress) {
@@ -451,17 +464,21 @@ public class BluetoothGattManager implements CommonResponseListener {
 			String macAddress = ((BluetoothGattEvent) commonResponseEvent).getMacAddress();
 			switch (((BluetoothGattEvent) commonResponseEvent).getEventCode()) {
 				case GATT_CONNECTED:
-					// 这个连接并不指的是连接建立的时候，而是连接并且查询到服务列表的时候
-					cancelTimeout(macAddress, TimeoutType.TYPE_CONNECT_TIMEOUT);
+					synchronized (TimeoutType.TYPE_CONNECT_TIMEOUT) {
+						// 这个连接并不指的是连接建立的时候，而是连接并且查询到服务列表的时候
+						cancelTimeout(macAddress, TimeoutType.TYPE_CONNECT_TIMEOUT);
+					}
 					break;
 				case GATT_DISCONNECTED:
-					Runnable task = cancelTimeout(macAddress, TimeoutType.TYPE_DISCONNECT_TIMEOUT);
-					if (task != null) {
-						// 如果是主动发起的断开连接，则再次彻底删除连接
-						removeDevice(macAddress);
-					} else {
-						// 如果是被动的断开了连接的话，则处理方式与以下情形相同
-						onGattConnectionError(macAddress);
+					synchronized (TimeoutType.TYPE_DISCONNECT_TIMEOUT) {
+						Runnable task = cancelTimeout(macAddress, TimeoutType.TYPE_DISCONNECT_TIMEOUT);
+						if (task != null) {
+							// 如果是主动发起的断开连接，则再次彻底删除连接
+							removeDevice(macAddress);
+						} else {
+							// 如果是被动的断开了连接的话，则处理方式与以下情形相同
+							onGattConnectionError(macAddress);
+						}
 					}
 					break;
 				case GATT_REMOTE_DISAPPEARED:
