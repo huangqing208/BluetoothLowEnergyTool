@@ -118,7 +118,6 @@ public class CommunicationService extends Service implements CommonResponseListe
 			switch (((BluetoothGattEvent) commonResponseEvent).getEventCode()) {
 				case GATT_CONNECTED:
 					// TODO: If needed, setNotification here!!!
-					GattRequestManager.getInstance().resumeRequest(macAddress);
 					break;
 				default:
 					break;
