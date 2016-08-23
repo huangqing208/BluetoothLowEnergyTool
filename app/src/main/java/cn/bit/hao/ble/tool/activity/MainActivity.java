@@ -16,6 +16,7 @@ import java.util.Map;
 import cn.bit.hao.ble.tool.R;
 import cn.bit.hao.ble.tool.application.App;
 import cn.bit.hao.ble.tool.application.Constants;
+import cn.bit.hao.ble.tool.bluetooth.scan.BluetoothLeScanManager;
 import cn.bit.hao.ble.tool.bluetooth.utils.ScanRecordCompat;
 import cn.bit.hao.ble.tool.data.DeviceStore;
 import cn.bit.hao.ble.tool.data.device.bluetooth.BLEDevice;
@@ -24,7 +25,7 @@ import cn.bit.hao.ble.tool.response.events.CommunicationResponseEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothGattEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
 
-public class MainActivity extends GattCommunicationActivity {
+public class MainActivity extends BleCommunicationActivity {
 	private static final String TAG = MainActivity.class.getSimpleName();
 
 	private TextView helloWorld;
@@ -62,13 +63,13 @@ public class MainActivity extends GattCommunicationActivity {
 
 	@Override
 	protected void onCommunicationServiceBound() {
-		communicationService.startLeScan();
+		BluetoothLeScanManager.getInstance().startLeScan(this);
 //		communicationService.connectDevice(TARGET_DEVICE_ADDRESS);
 	}
 
 	@Override
 	protected void beforeCommunicationServiceUnbound() {
-		communicationService.stopLeScan();
+		BluetoothLeScanManager.getInstance().stopLeScan(this);
 //		communicationService.disconnectDevice(TARGET_DEVICE_ADDRESS);
 	}
 
@@ -93,7 +94,7 @@ public class MainActivity extends GattCommunicationActivity {
 			ScanRecordCompat scanRecordCompat = ((BluetoothLeScanResultEvent) commonResponseEvent).getScanRecord();
 			List<ParcelUuid> serviceList = scanRecordCompat.getServiceUuids();
 			if (serviceList != null && serviceList.contains(new ParcelUuid(Constants.CSR_MESH_SERVICE))) {
-				String macAddress = ((BluetoothLeScanResultEvent) commonResponseEvent).getMacAddress();
+				String macAddress = ((BluetoothLeScanResultEvent) commonResponseEvent).getDevice().getAddress();
 				if (!scanResults.containsKey(macAddress)) {
 					scanResults.put(macAddress, scanRecordCompat);
 					Log.i(TAG, "mesh device count " + scanResults.size());

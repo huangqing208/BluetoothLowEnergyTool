@@ -32,7 +32,7 @@ public class ScanCallbackImpl extends ScanCallback {
 			return;
 		}
 		CommonResponseManager.getInstance().sendResponse(
-				new BluetoothLeScanResultEvent(result.getDevice().getAddress(), result.getRssi(),
+				new BluetoothLeScanResultEvent(result.getDevice(), result.getRssi(),
 						new ScanRecordCompat(scanRecord)));
 	}
 

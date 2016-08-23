@@ -19,6 +19,6 @@ public class LeScanCallbackImpl implements BluetoothAdapter.LeScanCallback {
 	@Override
 	public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
 		CommonResponseManager.getInstance().sendResponse(
-				new BluetoothLeScanResultEvent(device.getAddress(), rssi, ScanRecordCompat.parseFromBytes(scanRecord)));
+				new BluetoothLeScanResultEvent(device, rssi, ScanRecordCompat.parseFromBytes(scanRecord)));
 	}
 }

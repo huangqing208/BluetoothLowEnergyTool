@@ -8,7 +8,6 @@ import android.os.IBinder;
 
 import cn.bit.hao.ble.tool.bluetooth.gatt.BluetoothGattManager;
 import cn.bit.hao.ble.tool.bluetooth.gatt.GattRequestManager;
-import cn.bit.hao.ble.tool.bluetooth.scan.BluetoothLeScanManager;
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUuid;
 import cn.bit.hao.ble.tool.response.callbacks.CommonResponseListener;
 import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
@@ -46,21 +45,21 @@ public class CommunicationService extends Service implements CommonResponseListe
 		CommonResponseManager.getInstance().removeTaskCallback(this);
 	}
 
-	/**
-	 * 开启蓝牙搜索
-	 * 蓝牙搜索结果会由CommonResponseManager返回BluetoothLeScanResultEvent或BluetoothLeScanEvent
-	 */
-	public void startLeScan() {
-		// 忽视返回值，因为关系不大
-		BluetoothLeScanManager.getInstance().startLeScan(this);
-	}
-
-	/**
-	 * 关闭蓝牙搜索
-	 */
-	public void stopLeScan() {
-		BluetoothLeScanManager.getInstance().stopLeScan(this);
-	}
+//	/**
+//	 * 开启蓝牙搜索
+//	 * 蓝牙搜索结果会由CommonResponseManager返回BluetoothLeScanResultEvent或BluetoothLeScanEvent
+//	 */
+//	public void startLeScan() {
+//		// 忽视返回值，因为关系不大
+//		BluetoothLeScanManager.getInstance().startLeScan(this);
+//	}
+//
+//	/**
+//	 * 关闭蓝牙搜索
+//	 */
+//	public void stopLeScan() {
+//		BluetoothLeScanManager.getInstance().stopLeScan(this);
+//	}
 
 	/**
 	 * 尝试连接到目标设备

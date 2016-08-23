@@ -450,7 +450,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 			}
 		} else if (commonResponseEvent instanceof BluetoothLeScanResultEvent) {
 			// 如果搜索到需要重连的设备，那就去重连
-			String macAddress = ((BluetoothLeScanResultEvent) commonResponseEvent).getMacAddress();
+			String macAddress = ((BluetoothLeScanResultEvent) commonResponseEvent).getDevice().getAddress();
 			synchronized (bluetoothGattMap) {
 				if (!bluetoothGattMap.containsKey(macAddress)) {
 					return;

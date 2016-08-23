@@ -3,6 +3,8 @@
  */
 package cn.bit.hao.ble.tool.response.events.bluetooth;
 
+import android.bluetooth.BluetoothDevice;
+
 import cn.bit.hao.ble.tool.bluetooth.utils.ScanRecordCompat;
 import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
 import cn.bit.hao.ble.tool.util.ByteBitUtil;
@@ -13,12 +15,12 @@ import cn.bit.hao.ble.tool.util.ByteBitUtil;
 public class BluetoothLeScanResultEvent extends CommonResponseEvent {
 	private static final String TAG = BluetoothLeScanResultEvent.class.getSimpleName();
 
-	private String macAddress;
+	private BluetoothDevice device;
 	private int rssi;
 	private ScanRecordCompat scanRecord;
 
-	public BluetoothLeScanResultEvent(String macAddress, int rssi, ScanRecordCompat scanRecord) {
-		this.macAddress = macAddress;
+	public BluetoothLeScanResultEvent(BluetoothDevice device, int rssi, ScanRecordCompat scanRecord) {
+		this.device = device;
 		this.rssi = rssi;
 		this.scanRecord = scanRecord;
 	}
@@ -31,12 +33,12 @@ public class BluetoothLeScanResultEvent extends CommonResponseEvent {
 		this.scanRecord = scanRecord;
 	}
 
-	public String getMacAddress() {
-		return macAddress;
+	public BluetoothDevice getDevice() {
+		return device;
 	}
 
-	public void setMacAddress(String macAddress) {
-		this.macAddress = macAddress;
+	public void setDevice(BluetoothDevice device) {
+		this.device = device;
 	}
 
 	public int getRssi() {
@@ -62,7 +64,7 @@ public class BluetoothLeScanResultEvent extends CommonResponseEvent {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("macAddress: ").append(macAddress).append("; ")
+		sb.append("device: ").append(device).append("; ")
 				.append("rssi: ").append(rssi).append("; ")
 				.append("scanRecord: ").append(ByteBitUtil.byteArrayToHexString(scanRecord.getBytes()))
 				.append("\n").append(scanRecord);

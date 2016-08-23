@@ -3,13 +3,16 @@ package cn.bit.hao.ble.tool.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import cn.bit.hao.ble.tool.R;
 import cn.bit.hao.ble.tool.adapter.FunctionListAdapter;
+import cn.bit.hao.ble.tool.application.App;
 
 public class FunctionListActivity extends BaseActivity {
 
@@ -18,9 +21,8 @@ public class FunctionListActivity extends BaseActivity {
 	private FunctionListAdapter adapter;
 	private RecyclerView.LayoutManager layoutManager;
 
-	private static final int[] functionTexts = {R.string.scan_le_device, R.string.connect_le_device};
-	private static final int[] functionIcons = {R.mipmap.ic_bluetooth_searching_black_36dp,
-			R.mipmap.ic_bluetooth_black_36dp};
+	private List<Integer> functionTexts;
+	private List<Integer> functionIcons;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +32,14 @@ public class FunctionListActivity extends BaseActivity {
 		findView();
 
 		setListener();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if (isFinishing()) {
+			App.getInstance().exitApp();
+		}
 	}
 
 	private void findView() {
@@ -42,6 +52,14 @@ public class FunctionListActivity extends BaseActivity {
 		layoutManager = new LinearLayoutManager(this);
 		functionList.setLayoutManager(layoutManager);
 
+		functionTexts = new ArrayList<>();
+		functionTexts.addAll(Arrays.asList(
+				R.string.scan_le_device,
+				R.string.connect_le_device));
+		functionIcons = new ArrayList<>();
+		functionIcons.addAll(Arrays.asList(
+				R.mipmap.ic_bluetooth_searching_black_36dp,
+				R.mipmap.ic_bluetooth_black_36dp));
 		adapter = new FunctionListAdapter(this, functionTexts, functionIcons);
 		functionList.setAdapter(adapter);
 	}
@@ -49,16 +67,27 @@ public class FunctionListActivity extends BaseActivity {
 	private void setListener() {
 		adapter.setOnItemClickListener(new FunctionListAdapter.OnItemClickListener() {
 			@Override
-			public void onItemClick(View view, int position) {
-				Snackbar.make(coordinatorLayout, "position: " + position, Snackbar.LENGTH_SHORT)
-						.setAction("OK", new View.OnClickListener() {
-							@Override
-							public void onClick(View v) {
-								startActivity(new Intent(FunctionListActivity.this, MainActivity.class));
-							}
-						}).show();
+			public void onItemClick(FunctionListAdapter.ViewHolder viewHolder, int position) {
+				switch (position) {
+					case 0:
+						startActivity(new Intent(FunctionListActivity.this, ScanLeDevicesActivity.class));
+						break;
+					case 1:
+						break;
+					default:
+						break;
+				}
+//				Snackbar.make(coordinatorLayout, "position: " + position, Snackbar.LENGTH_SHORT)
+//						.setAction("OK", new View.OnClickListener() {
+//							@Override
+//							public void onClick(View v) {
+//								startActivity(new Intent(FunctionListActivity.this, MainActivity.class));
+//							}
+//						}).show();
 			}
 		});
+
+
 	}
 
 }

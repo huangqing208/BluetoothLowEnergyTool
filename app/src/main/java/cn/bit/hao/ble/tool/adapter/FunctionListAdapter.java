@@ -12,6 +12,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.List;
+
 import cn.bit.hao.ble.tool.R;
 
 /**
@@ -35,17 +37,17 @@ public class FunctionListAdapter extends RecyclerView.Adapter<FunctionListAdapte
 	}
 
 	private Context context;
-	private int[] mTexts;
-	private int[] mIcons;
+	private List<Integer> mTexts;
+	private List<Integer> mIcons;
 
-	public FunctionListAdapter(Context context, int[] texts, int[] icons) {
+	public FunctionListAdapter(Context context, List<Integer> texts, List<Integer> icons) {
 		this.context = context;
 		this.mTexts = texts;
 		this.mIcons = icons;
 	}
 
 	public interface OnItemClickListener {
-		public void onItemClick(View view, int position);
+		void onItemClick(ViewHolder viewHolder, int position);
 	}
 
 	private OnItemClickListener listener;
@@ -55,29 +57,24 @@ public class FunctionListAdapter extends RecyclerView.Adapter<FunctionListAdapte
 	}
 
 	@Override
-	public int getItemViewType(int position) {
-		Log.i(TAG, "getItemViewType " + position);
-		return super.getItemViewType(position);
-	}
-
-	@Override
 	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 		Log.i(TAG, "onCreateViewHolder: " + viewType);
-		int layoutId = R.layout.function_list_item;
-		View v = LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false);
+		View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.function_list_item, parent, false);
 		// 两种布局的子view类型及对应ID均相同，所以可以共用ViewHolder
 		return new ViewHolder(v);
 	}
 
 	@Override
-	public void onBindViewHolder(ViewHolder holder, final int position) {
-		holder.icon.setImageResource(mIcons[position]);
-		holder.text.setText(context.getString(mTexts[position]));
+	public void onBindViewHolder(final ViewHolder holder, int position) {
+		Log.i(TAG, "onBindViewHolder: " + position);
+		holder.icon.setImageResource(mIcons.get(position));
+		holder.text.setText(context.getString(mTexts.get(position)));
 		holder.view.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (listener != null) {
-					listener.onItemClick(v, position);
+				int adapterPosition = holder.getAdapterPosition();
+				if (listener != null && adapterPosition != RecyclerView.NO_POSITION) {
+					listener.onItemClick(holder, adapterPosition);
 				}
 			}
 		});
@@ -85,6 +82,7 @@ public class FunctionListAdapter extends RecyclerView.Adapter<FunctionListAdapte
 
 	@Override
 	public int getItemCount() {
-		return mTexts != null ? mTexts.length : 0;
+		Log.i(TAG, "getItemCount");
+		return mTexts != null ? mTexts.size() : 0;
 	}
 }

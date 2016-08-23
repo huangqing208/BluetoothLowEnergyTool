@@ -19,8 +19,8 @@ import cn.bit.hao.ble.tool.service.CommunicationService;
  *
  * @author wuhao on 2016/7/14
  */
-public abstract class GattCommunicationActivity extends BaseActivity {
-	private static final String TAG = GattCommunicationActivity.class.getSimpleName();
+public abstract class BleCommunicationActivity extends BaseActivity {
+	private static final String TAG = BleCommunicationActivity.class.getSimpleName();
 
 	protected CommunicationService communicationService;
 
