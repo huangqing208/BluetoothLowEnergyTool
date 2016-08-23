@@ -190,7 +190,7 @@ public class GattRequestManager {
 	 *
 	 * @param macAddress 目标设备mac地址
 	 */
-	/*package*/ void resumeRequest(String macAddress) {
+	public void resumeRequest(String macAddress) {
 		GattRequestQueue requestQueue = requestQueues.get(macAddress);
 		if (requestQueue != null) {
 			requestQueue.performNextTask();
