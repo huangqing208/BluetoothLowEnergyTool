@@ -80,7 +80,8 @@ public class BluetoothGattManager implements CommonResponseListener {
 		if (context == null) {
 			return false;
 		}
-		if (applicationContext != null && applicationContext.get() != null) {
+		if (getContext() != null) {
+			// 不接受重复初始化
 			return false;
 		}
 		applicationContext = new WeakReference<>(context.getApplicationContext());
@@ -91,9 +92,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 	}
 
 	private Context getContext() {
-		return (applicationContext == null || applicationContext.get() == null)
-				? null
-				: applicationContext.get();
+		return applicationContext == null ? null : applicationContext.get();
 	}
 
 	/**

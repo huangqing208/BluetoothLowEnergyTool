@@ -59,12 +59,13 @@ public class BluetoothStateManager {
 		if (context == null) {
 			return false;
 		}
-		if (applicationContext != null && applicationContext.get() != null) {
+		if (getContext() != null) {
+			// 不接受重复初始化
 			return false;
 		}
 		applicationContext = new WeakReference<Context>(context.getApplicationContext());
 
-		BluetoothAdapter bluetoothAdapter = BluetoothUtil.getBluetoothAdapter(context.getApplicationContext());
+		BluetoothAdapter bluetoothAdapter = BluetoothUtil.getBluetoothAdapter(applicationContext.get());
 		if (bluetoothAdapter == null) {
 			this.bluetoothSupported = false;
 			applicationContext = null;
@@ -73,15 +74,13 @@ public class BluetoothStateManager {
 		setBluetoothState(bluetoothAdapter.getState());
 
 		// 启动监听服务来保证自己的状态刷新
-		context.startService(new Intent(context, MonitorBluetoothStateService.class));
+		applicationContext.get().startService(new Intent(applicationContext.get(),
+				MonitorBluetoothStateService.class));
 		return true;
 	}
 
 	private Context getContext() {
-		if (applicationContext == null || applicationContext.get() == null) {
-			return null;
-		}
-		return applicationContext.get();
+		return applicationContext == null ? null : applicationContext.get();
 	}
 
 	/**
@@ -114,7 +113,7 @@ public class BluetoothStateManager {
 	 *
 	 * @param newState 新的蓝牙状态
 	 */
-	public synchronized void setBluetoothState(int newState) {
+	/*package*/ synchronized void setBluetoothState(int newState) {
 		if (bluetoothState == newState) {
 			return;
 		}

@@ -167,6 +167,14 @@ public class GattRequestManager {
 		return addGattRequestTask(macAddress, newTask, false);
 	}
 
+	/**
+	 * 读取目标characteristic的值
+	 *
+	 * @param macAddress         目标设备mac地址
+	 * @param serviceUuid        目标Service UUID
+	 * @param characteristicUuid 目标Characteristic UUID
+	 * @return 如果成功加入请求队列返回true，否则返回false
+	 */
 	public synchronized boolean readCharacteristic(String macAddress, UUID serviceUuid,
 	                                               UUID characteristicUuid) {
 		BluetoothGattCharacteristic gattCharacteristic = getCharacteristic(macAddress, serviceUuid,

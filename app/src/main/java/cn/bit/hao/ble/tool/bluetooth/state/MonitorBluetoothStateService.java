@@ -14,7 +14,21 @@ import android.os.IBinder;
 public class MonitorBluetoothStateService extends Service {
 	private static final String TAG = MonitorBluetoothStateService.class.getSimpleName();
 
+	private BluetoothBroadcastReceiver bluetoothBroadcastReceiver;
+
 	public MonitorBluetoothStateService() {
+	}
+
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		// 之所以放在这里是因为onStartCommand可能会被多次调用，而onCreate与onDestroy是一一对应的
+		initBluetoothMonitor();
+	}
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		return super.onStartCommand(intent, flags, startId);
 	}
 
 	@Override
@@ -23,12 +37,13 @@ public class MonitorBluetoothStateService extends Service {
 	}
 
 	@Override
-	public void onCreate() {
-		super.onCreate();
-		initBluetoothMonitor();
+	public void onDestroy() {
+		super.onDestroy();
+		if (bluetoothBroadcastReceiver != null) {
+			unregisterReceiver(bluetoothBroadcastReceiver);
+			bluetoothBroadcastReceiver = null;
+		}
 	}
-
-	private BluetoothBroadcastReceiver bluetoothBroadcastReceiver;
 
 	private void initBluetoothMonitor() {
 		if (bluetoothBroadcastReceiver == null) {
@@ -47,21 +62,12 @@ public class MonitorBluetoothStateService extends Service {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			if (!intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+			if (!BluetoothAdapter.ACTION_STATE_CHANGED.equals(intent.getAction())) {
 				return;
 			}
 
 			final int newState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
 			BluetoothStateManager.getInstance().setBluetoothState(newState);
-		}
-	}
-
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-		if (bluetoothBroadcastReceiver != null) {
-			unregisterReceiver(bluetoothBroadcastReceiver);
-			bluetoothBroadcastReceiver = null;
 		}
 	}
 
