@@ -32,18 +32,6 @@ public class BluetoothStateEvent extends CommonResponseEvent {
 	}
 
 	@Override
-	public BluetoothStateEvent clone() {
-		BluetoothStateEvent result = null;
-		try {
-			result = (BluetoothStateEvent) super.clone();
-			result.eventCode = this.eventCode;
-		} catch (ClassCastException e) {
-			e.printStackTrace();
-		}
-		return result;
-	}
-
-	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("eventCode: ").append(eventCode == null ? "null" : eventCode);
