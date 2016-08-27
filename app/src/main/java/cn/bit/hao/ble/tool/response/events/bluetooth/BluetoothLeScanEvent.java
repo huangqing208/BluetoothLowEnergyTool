@@ -13,7 +13,8 @@ public class BluetoothLeScanEvent extends CommonResponseEvent {
 
 	public enum BluetoothLeScanCode {
 		LE_SCAN_TIMEOUT,
-		LE_SCAN_FAILED
+		LE_SCAN_FAILED,
+		LE_SCAN_PERMISSION_DENIED
 	}
 
 	private BluetoothLeScanCode bluetoothLeScanCode;

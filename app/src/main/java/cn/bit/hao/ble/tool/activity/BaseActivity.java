@@ -3,13 +3,18 @@
  */
 package cn.bit.hao.ble.tool.activity;
 
+import android.Manifest;
 import android.app.Dialog;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import cn.bit.hao.ble.tool.bluetooth.scan.BluetoothLeScanManager;
 import cn.bit.hao.ble.tool.bluetooth.state.BluetoothStateManager;
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUtil;
 import cn.bit.hao.ble.tool.response.callbacks.CommonResponseListener;
@@ -28,9 +33,12 @@ import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
 public abstract class BaseActivity extends AppCompatActivity implements CommonResponseListener {
 	private static final String TAG = BaseActivity.class.getSimpleName();
 
+	private static final int REQUEST_LE_SCAN_PERMISSION = 0x0001;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.i(TAG, BaseActivity.this.getClass().getSimpleName() + " onCreate");
 		// 先注册回调，再刷新UI，即可确保信息显示及时不丢失
 		CommonResponseManager.getInstance().addUICallback(this);
 	}
@@ -82,6 +90,12 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 	}
 
 	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		Log.i(TAG, BaseActivity.this.getClass().getSimpleName() + " onDestroy");
+	}
+
+	@Override
 	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
 		if (commonResponseEvent instanceof BluetoothStateEvent) {
 			switch (((BluetoothStateEvent) commonResponseEvent).getEventCode()) {
@@ -101,10 +115,37 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 					Toast.makeText(this, "resetting bluetooth...", Toast.LENGTH_SHORT).show();
 					BluetoothStateManager.getInstance().resetBluetooth();
 					break;
+				case LE_SCAN_PERMISSION_DENIED:
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+						requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+								Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LE_SCAN_PERMISSION);
+					}
+					break;
 				case LE_SCAN_FAILED:
 				default:
 					break;
 			}
+		}
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		switch (requestCode) {
+			case REQUEST_LE_SCAN_PERMISSION:
+				boolean granted = permissions.length > 0;
+				for (int i = 0; i < permissions.length && i < grantResults.length; i++) {
+					if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+						granted = false;
+						break;
+					}
+				}
+				if (granted) {
+					BluetoothLeScanManager.getInstance().startLeScan(null);
+				}
+				break;
+			default:
+				super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+				break;
 		}
 	}
 

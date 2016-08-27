@@ -3,10 +3,12 @@
  */
 package cn.bit.hao.ble.tool.bluetooth.scan;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -122,14 +124,17 @@ public class BluetoothLeScanManager implements CommonResponseListener {
 	 * @return 成功执行的话返回true，否则返回false
 	 */
 	public synchronized boolean startLeScan(CommonResponseListener listener) {
-		if (listener == null || scanListeners.contains(listener)) {
-			return false;
+		if (listener != null && !scanListeners.contains(listener)) {
+			scanListeners.add(listener);
 		}
-		scanListeners.add(listener);
-		performStartLeScan();
-		return true;
+		return performStartLeScan();
 	}
 
+	/**
+	 * 执行搜索
+	 *
+	 * @return 如果开始搜索或正在搜索中，则返回true，否则返回false
+	 */
 	private boolean performStartLeScan() {
 		if (isLeScanning) {
 			// 在stopLeScan前不允许重复startLeScan避免触发SCAN_FAILED_ALREADY_STARTED
@@ -146,6 +151,17 @@ public class BluetoothLeScanManager implements CommonResponseListener {
 		if (bluetoothAdapter == null) {
 			return false;
 		}
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			if (context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+					!= PackageManager.PERMISSION_GRANTED
+					|| context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+					!= PackageManager.PERMISSION_GRANTED) {
+				CommonResponseManager.getInstance().sendResponse(new BluetoothLeScanEvent(
+						BluetoothLeScanEvent.BluetoothLeScanCode.LE_SCAN_PERMISSION_DENIED));
+				return false;
+			}
+		}
+
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
 			bluetoothAdapter.startLeScan(leScanCallback);
 			isLeScanning = true;

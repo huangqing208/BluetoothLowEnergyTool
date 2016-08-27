@@ -71,7 +71,16 @@ public abstract class BleCommunicationActivity extends BaseActivity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if (isFinishing()) {
+		if (isFinishing() && communicationService != null) {
+			beforeCommunicationServiceUnbound();
+			unbindCommunicationService();
+		}
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (communicationService != null) {
 			beforeCommunicationServiceUnbound();
 			unbindCommunicationService();
 		}

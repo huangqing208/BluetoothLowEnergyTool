@@ -89,6 +89,7 @@ public class ScanLeDevicesActivity extends BleCommunicationActivity {
 
 	@Override
 	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
+		super.onCommonResponded(commonResponseEvent);
 		if (commonResponseEvent instanceof BluetoothLeScanResultEvent) {
 			BluetoothLeScanResultEvent scanResultEvent = (BluetoothLeScanResultEvent) commonResponseEvent;
 			if (scanResultEvent.getDevice().getName() == null
