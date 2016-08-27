@@ -102,7 +102,8 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 				case BLUETOOTH_STATE_ON:
 					break;
 				case BLUETOOTH_STATE_OFF:
-					// if bluetooth is off, show some info
+					// TODO: 只有当前界面在显示时才能担当重启蓝牙的请求任务
+					BluetoothUtil.requestBluetooth(this);
 					break;
 				case BLUETOOTH_STATE_ERROR:
 				default:

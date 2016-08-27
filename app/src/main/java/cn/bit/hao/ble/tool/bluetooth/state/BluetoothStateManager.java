@@ -134,10 +134,13 @@ public class BluetoothStateManager {
 					if (resettingBluetooth) {
 						resettingBluetooth = false;
 						BluetoothUtil.setBluetoothState(context, true);
-					} else {
-						// TODO: 以下为可配置选项，默认由此Manager维护蓝牙重启，也可以禁用此处的功能，在BluetoothCallback回调时再考虑是否重启
-						BluetoothUtil.requestBluetooth(context);
 					}
+//					else {
+//						// TODO: 由UI来申请开启蓝牙，此处不做蓝牙开启请求
+//						if (CommonResponseManager.getInstance().isUINotified()) {
+//							BluetoothUtil.requestBluetooth(context);
+//						}
+//					}
 				}
 				event = new BluetoothStateEvent(BluetoothStateEvent.BluetoothStateCode.BLUETOOTH_STATE_OFF);
 				break;

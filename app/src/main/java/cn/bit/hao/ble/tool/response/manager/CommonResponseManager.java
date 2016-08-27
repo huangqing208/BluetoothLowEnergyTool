@@ -45,6 +45,10 @@ public class CommonResponseManager {
 		return instance;
 	}
 
+	public boolean isUINotified() {
+		return notifyUI;
+	}
+
 	/**
 	 * 指定一个被通知的UI回调对象，按照添加时顺序，在此对象添加之后添加的回调对象会被删除，即不再接收回调。
 	 *
