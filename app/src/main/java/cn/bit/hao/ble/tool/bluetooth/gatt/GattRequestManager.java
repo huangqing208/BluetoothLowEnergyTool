@@ -129,7 +129,7 @@ public class GattRequestManager {
 	                                                UUID characteristicUuid, byte[] content,
 	                                                int writeType) {
 		// 如果发送内容长度超过可一次write的长度，则拒绝接受此次任务
-		if (content == null || content.length > 20) {
+		if (content == null || content.length == 0 || content.length > 20) {
 			return false;
 		}
 
