@@ -10,8 +10,8 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.bit.hao.ble.tool.response.callbacks.CommonResponseListener;
-import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.callbacks.CommonEventListener;
+import cn.bit.hao.ble.tool.response.events.CommonEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
 
 
@@ -20,27 +20,27 @@ import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
  *
  * @author wuhao on 2016/7/15
  */
-public class CommonResponseManager {
-	private static final String TAG = CommonResponseManager.class.getSimpleName();
+public class CommonEventManager {
+	private static final String TAG = CommonEventManager.class.getSimpleName();
 
-	private final List<CommonResponseListener> uiCallbacks;
-	private final List<CommonResponseListener> taskCallbacks;
+	private final List<CommonEventListener> uiCallbacks;
+	private final List<CommonEventListener> taskCallbacks;
 
 	private boolean notifyUI = false;
 
 	private Handler mHandler;
 
-	private CommonResponseManager() {
+	private CommonEventManager() {
 		mHandler = new Handler(Looper.getMainLooper());
 		uiCallbacks = new ArrayList<>();
 		taskCallbacks = new ArrayList<>();
 	}
 
-	private static CommonResponseManager instance;
+	private static CommonEventManager instance;
 
-	public static synchronized CommonResponseManager getInstance() {
+	public static synchronized CommonEventManager getInstance() {
 		if (instance == null) {
-			instance = new CommonResponseManager();
+			instance = new CommonEventManager();
 		}
 		return instance;
 	}
@@ -54,7 +54,7 @@ public class CommonResponseManager {
 	 *
 	 * @param uiCallback 需要通知到的UI回调对象
 	 */
-	public void registerUINotification(CommonResponseListener uiCallback) {
+	public void registerUINotification(CommonEventListener uiCallback) {
 		synchronized (uiCallbacks) {
 			if (uiCallback == null || !uiCallbacks.contains(uiCallback)) {
 				return;
@@ -75,7 +75,7 @@ public class CommonResponseManager {
 	 *
 	 * @param uiCallback 取消对指定UI回调的返回
 	 */
-	public void unregisterUINotification(CommonResponseListener uiCallback) {
+	public void unregisterUINotification(CommonEventListener uiCallback) {
 		synchronized (uiCallbacks) {
 			if (uiCallback == null) {
 				return;
@@ -87,7 +87,7 @@ public class CommonResponseManager {
 		}
 	}
 
-	public boolean addUICallback(CommonResponseListener callback) {
+	public boolean addUICallback(CommonEventListener callback) {
 		synchronized (uiCallbacks) {
 			if (uiCallbacks.contains(callback)) {
 				return false;
@@ -97,13 +97,13 @@ public class CommonResponseManager {
 		}
 	}
 
-	public void removeUICallback(CommonResponseListener callback) {
+	public void removeUICallback(CommonEventListener callback) {
 		synchronized (uiCallbacks) {
 			uiCallbacks.remove(callback);
 		}
 	}
 
-	public boolean addTaskCallback(CommonResponseListener callback) {
+	public boolean addTaskCallback(CommonEventListener callback) {
 		synchronized (taskCallbacks) {
 			if (taskCallbacks.contains(callback)) {
 				return false;
@@ -113,7 +113,7 @@ public class CommonResponseManager {
 		}
 	}
 
-	public void removeTaskCallback(CommonResponseListener callback) {
+	public void removeTaskCallback(CommonEventListener callback) {
 		synchronized (taskCallbacks) {
 			taskCallbacks.remove(callback);
 		}
@@ -122,16 +122,16 @@ public class CommonResponseManager {
 	/**
 	 * 此方法可以将消息会调给目标对象
 	 *
-	 * @param commonResponseEvent 被通知到的消息
+	 * @param commonEvent 被通知到的消息
 	 */
-	public void sendResponse(final CommonResponseEvent commonResponseEvent) {
-		if (!(commonResponseEvent instanceof BluetoothLeScanResultEvent)) {
-			Log.i(TAG, commonResponseEvent.toString());
+	public void sendResponse(final CommonEvent commonEvent) {
+		if (!(commonEvent instanceof BluetoothLeScanResultEvent)) {
+			Log.i(TAG, commonEvent.toString());
 		}
 		synchronized (taskCallbacks) {
 			for (int i = 0; i < taskCallbacks.size(); ++i) {
 				// TODO: 通常来说不会修改通知内容的，所以默认用同一个通知对象，必要的话，可以深复制
-				taskCallbacks.get(i).onCommonResponded(commonResponseEvent);
+				taskCallbacks.get(i).onCommonResponded(commonEvent);
 //				taskCallbacks.get(i).onCommonResponded(commonResponseEvent.clone());
 			}
 		}
@@ -146,7 +146,7 @@ public class CommonResponseManager {
 					int size = uiCallbacks.size();
 					if (size > 0) {
 						// UICallback只提醒最后一个
-						uiCallbacks.get(size - 1).onCommonResponded(commonResponseEvent);
+						uiCallbacks.get(size - 1).onCommonResponded(commonEvent);
 					}
 				}
 			}

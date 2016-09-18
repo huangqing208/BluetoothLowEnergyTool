@@ -17,11 +17,11 @@ import android.widget.Toast;
 import cn.bit.hao.ble.tool.bluetooth.scan.BluetoothLeScanManager;
 import cn.bit.hao.ble.tool.bluetooth.state.BluetoothStateManager;
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUtil;
-import cn.bit.hao.ble.tool.response.callbacks.CommonResponseListener;
-import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.callbacks.CommonEventListener;
+import cn.bit.hao.ble.tool.response.events.CommonEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothStateEvent;
-import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
+import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 
 /**
  * 此类为所有Activity的基类，保障所有Activity需要实现的功能。
@@ -30,7 +30,7 @@ import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
  *
  * @author wuhao on 2016/7/16
  */
-public abstract class BaseActivity extends AppCompatActivity implements CommonResponseListener {
+public abstract class BaseActivity extends AppCompatActivity implements CommonEventListener {
 	private static final String TAG = BaseActivity.class.getSimpleName();
 
 	private static final int REQUEST_LE_SCAN_PERMISSION = 0x0001;
@@ -40,14 +40,14 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 		super.onCreate(savedInstanceState);
 		Log.i(TAG, BaseActivity.this.getClass().getSimpleName() + " onCreate");
 		// 先注册回调，再刷新UI，即可确保信息显示及时不丢失
-		CommonResponseManager.getInstance().addUICallback(this);
+		CommonEventManager.getInstance().addUICallback(this);
 	}
 
 	@Override
 	protected void onStart() {
 		super.onStart();
 		Log.i(TAG, BaseActivity.this.getClass().getSimpleName() + " onStart");
-		CommonResponseManager.getInstance().registerUINotification(this);
+		CommonEventManager.getInstance().registerUINotification(this);
 		refreshBluetoothState();
 	}
 
@@ -77,7 +77,7 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 			// 如果进入Activity在onStart中有逻辑请求，而退出Activity还没有removeUICallback时，返回的消息会送到退出Activity，于是就会出错。
 			// 所以，退出Activity在onStop中做removeUICallback是不合理的，在onPause中做removeUICallback才行。
 			// 也可以理解为：终结活动的Activity需要立即结束回调监听
-			CommonResponseManager.getInstance().removeUICallback(this);
+			CommonEventManager.getInstance().removeUICallback(this);
 		}
 	}
 
@@ -86,7 +86,7 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 		super.onStop();
 		Log.i(TAG, BaseActivity.this.getClass().getSimpleName() + " onStop");
 		// 如果是切换到其他App，则需要停止UI监听
-		CommonResponseManager.getInstance().unregisterUINotification(this);
+		CommonEventManager.getInstance().unregisterUINotification(this);
 	}
 
 	@Override
@@ -96,9 +96,9 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 	}
 
 	@Override
-	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
-		if (commonResponseEvent instanceof BluetoothStateEvent) {
-			switch (((BluetoothStateEvent) commonResponseEvent).getEventCode()) {
+	public void onCommonResponded(CommonEvent commonEvent) {
+		if (commonEvent instanceof BluetoothStateEvent) {
+			switch (((BluetoothStateEvent) commonEvent).getEventCode()) {
 				case BLUETOOTH_STATE_ON:
 					break;
 				case BLUETOOTH_STATE_OFF:
@@ -109,8 +109,8 @@ public abstract class BaseActivity extends AppCompatActivity implements CommonRe
 				default:
 					break;
 			}
-		} else if (commonResponseEvent instanceof BluetoothLeScanEvent) {
-			switch (((BluetoothLeScanEvent) commonResponseEvent).getBluetoothLeScanCode()) {
+		} else if (commonEvent instanceof BluetoothLeScanEvent) {
+			switch (((BluetoothLeScanEvent) commonEvent).getBluetoothLeScanCode()) {
 				case LE_SCAN_TIMEOUT:
 					// TODO: show a dialog ask for reset bluetooth
 					Toast.makeText(this, "resetting bluetooth...", Toast.LENGTH_SHORT).show();

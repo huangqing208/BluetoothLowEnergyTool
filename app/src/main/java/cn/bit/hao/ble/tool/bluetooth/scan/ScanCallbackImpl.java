@@ -15,7 +15,7 @@ import java.util.List;
 import cn.bit.hao.ble.tool.bluetooth.utils.ScanRecordCompat;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
-import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
+import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 
 /**
  * @author wuhao on 2016/8/4
@@ -31,7 +31,7 @@ public class ScanCallbackImpl extends ScanCallback {
 		if (scanRecord == null) {
 			return;
 		}
-		CommonResponseManager.getInstance().sendResponse(
+		CommonEventManager.getInstance().sendResponse(
 				new BluetoothLeScanResultEvent(result.getDevice(), result.getRssi(),
 						new ScanRecordCompat(scanRecord)));
 	}
@@ -49,7 +49,7 @@ public class ScanCallbackImpl extends ScanCallback {
 		if (errorCode == SCAN_FAILED_ALREADY_STARTED) {
 			return;
 		}
-		CommonResponseManager.getInstance().sendResponse(
+		CommonEventManager.getInstance().sendResponse(
 				new BluetoothLeScanEvent(BluetoothLeScanEvent.BluetoothLeScanCode.LE_SCAN_FAILED));
 	}
 }

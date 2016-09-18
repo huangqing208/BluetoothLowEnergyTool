@@ -14,7 +14,7 @@ import java.util.Map;
 import cn.bit.hao.ble.tool.R;
 import cn.bit.hao.ble.tool.adapter.ScanResultAdapter;
 import cn.bit.hao.ble.tool.bluetooth.scan.BluetoothLeScanManager;
-import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.events.CommonEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
 
 public class ScanLeDevicesActivity extends BleCommunicationActivity {
@@ -88,10 +88,10 @@ public class ScanLeDevicesActivity extends BleCommunicationActivity {
 	}
 
 	@Override
-	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
-		super.onCommonResponded(commonResponseEvent);
-		if (commonResponseEvent instanceof BluetoothLeScanResultEvent) {
-			BluetoothLeScanResultEvent scanResultEvent = (BluetoothLeScanResultEvent) commonResponseEvent;
+	public void onCommonResponded(CommonEvent commonEvent) {
+		super.onCommonResponded(commonEvent);
+		if (commonEvent instanceof BluetoothLeScanResultEvent) {
+			BluetoothLeScanResultEvent scanResultEvent = (BluetoothLeScanResultEvent) commonEvent;
 			if (scanResultEvent.getDevice().getName() == null
 					|| scanResultEvent.getDevice().getName().length() == 0
 					|| scanResultEvent.getScanRecord().getServiceUuids() == null

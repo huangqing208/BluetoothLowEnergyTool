@@ -8,7 +8,7 @@ package cn.bit.hao.ble.tool.response.events;
  *
  * @author wuhao on 2016/7/30
  */
-public class CommunicationResponseEvent extends CommonResponseEvent {
+public class CommunicationResponseEvent extends CommonEvent {
 	private static final String TAG = CommunicationResponseEvent.class.getSimpleName();
 
 	private String macAddress;

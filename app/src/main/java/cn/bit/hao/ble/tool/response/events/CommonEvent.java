@@ -6,15 +6,15 @@ package cn.bit.hao.ble.tool.response.events;
 /**
  * @author wuhao on 2016/8/1
  */
-public abstract class CommonResponseEvent implements Cloneable {
-	private static final String TAG = CommonResponseEvent.class.getSimpleName();
+public abstract class CommonEvent implements Cloneable {
+	private static final String TAG = CommonEvent.class.getSimpleName();
 
 	/**
 	 * 如果子类想实现深复制，且包含String和原生数据类型之外的对象成员，则需要实现此方法并深复制那些对象成员
 	 */
 	@Override
-	public CommonResponseEvent clone() {
-		CommonResponseEvent result = null;
+	public CommonEvent clone() {
+		CommonEvent result = null;
 		try {
 			/**
 			 * Creates and returns a copy of this {@code Object}. The default
@@ -26,7 +26,7 @@ public abstract class CommonResponseEvent implements Cloneable {
 			 * to create the new instance and then create deep copies of the nested,
 			 * mutable objects.
 			 */
-			result = (CommonResponseEvent) super.clone();
+			result = (CommonEvent) super.clone();
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
 		}

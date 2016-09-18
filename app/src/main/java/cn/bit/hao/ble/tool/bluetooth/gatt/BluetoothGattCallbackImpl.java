@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothGattEvent;
-import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
+import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 
 /**
  * 此为自定义的Gatt回调实现
@@ -97,7 +97,7 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 							@Override
 							public void run() {
 								// 此处算是借用GATT_CONNECTION_ERROR来驱动后续的断开重连
-								CommonResponseManager.getInstance().sendResponse(
+								CommonEventManager.getInstance().sendResponse(
 										new BluetoothGattEvent(macAddress,
 												BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 							}
@@ -105,13 +105,13 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 						break;
 					case BluetoothGatt.STATE_DISCONNECTED:
 						// 不一定是主动断开，可能是被动断开，但却是正常的被动断开
-						CommonResponseManager.getInstance().sendResponse(
+						CommonEventManager.getInstance().sendResponse(
 								new BluetoothGattEvent(macAddress,
 										BluetoothGattEvent.BluetoothGattCode.GATT_DISCONNECTED));
 						break;
 					default:
 //						super.onConnectionStateChange(gatt, status, newState);
-						CommonResponseManager.getInstance().sendResponse(
+						CommonEventManager.getInstance().sendResponse(
 								new BluetoothGattEvent(macAddress,
 										BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 						break;
@@ -119,18 +119,18 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 				break;
 			case GATT_CONNECT_TIMEOUT:
 				// 通常这是因为连接超时
-				CommonResponseManager.getInstance().sendResponse(
+				CommonEventManager.getInstance().sendResponse(
 						new BluetoothGattEvent(macAddress,
 								BluetoothGattEvent.BluetoothGattCode.GATT_CONNECT_TIMEOUT));
 				break;
 			case REMOTE_DISAPPEARED:
-				CommonResponseManager.getInstance().sendResponse(
+				CommonEventManager.getInstance().sendResponse(
 						new BluetoothGattEvent(macAddress,
 								BluetoothGattEvent.BluetoothGattCode.GATT_REMOTE_DISAPPEARED));
 				break;
 			case BluetoothGatt.GATT_FAILURE:
 			default:
-				CommonResponseManager.getInstance().sendResponse(
+				CommonEventManager.getInstance().sendResponse(
 						new BluetoothGattEvent(macAddress,
 								BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 				break;
@@ -146,10 +146,10 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 			// 如果在此得知搜索服务操作失败的话，可以立即反馈，无需超时处理
 			// 此处的处理方式是假装连接失败，之后会断开重连重搜索服务的
 			// TODO: 如果设备故障，可能会陷入死循环
-			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+			CommonEventManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
 					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 		} else {
-			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+			CommonEventManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
 					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTED));
 
 			// 连接建立好的时候，恢复请求任务
@@ -167,7 +167,7 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 				status == BluetoothGatt.GATT_SUCCESS);
 		if (status != BluetoothGatt.GATT_SUCCESS) {
 			// 可能是连接问题，所以尝试重连
-			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+			CommonEventManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
 					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 		}
 	}
@@ -181,7 +181,7 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 				status == BluetoothGatt.GATT_SUCCESS);
 		if (status != BluetoothGatt.GATT_SUCCESS) {
 			// 可能是连接问题，所以尝试重连
-			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+			CommonEventManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
 					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 		}
 	}
@@ -198,7 +198,7 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 				status == BluetoothGatt.GATT_SUCCESS);
 		if (status != BluetoothGatt.GATT_SUCCESS) {
 			// 可能是连接问题，所以尝试重连
-			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+			CommonEventManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
 					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 		}
 	}
@@ -218,7 +218,7 @@ public class BluetoothGattCallbackImpl extends BluetoothGattCallback {
 					Arrays.copyOf(characteristic.getValue(), characteristic.getValue().length));
 		} else {
 			// 可能是连接问题，所以尝试重连
-			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+			CommonEventManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
 					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 		}
 	}

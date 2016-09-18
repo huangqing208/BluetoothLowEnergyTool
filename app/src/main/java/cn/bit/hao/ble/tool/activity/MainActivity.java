@@ -20,7 +20,7 @@ import cn.bit.hao.ble.tool.bluetooth.scan.BluetoothLeScanManager;
 import cn.bit.hao.ble.tool.bluetooth.utils.ScanRecordCompat;
 import cn.bit.hao.ble.tool.data.DeviceStore;
 import cn.bit.hao.ble.tool.data.device.bluetooth.BLEDevice;
-import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.events.CommonEvent;
 import cn.bit.hao.ble.tool.response.events.CommunicationResponseEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothGattEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
@@ -85,26 +85,26 @@ public class MainActivity extends BleCommunicationActivity {
 	private Map<String, ScanRecordCompat> scanResults = new HashMap<>();
 
 	@Override
-	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
-		super.onCommonResponded(commonResponseEvent);
-		if (commonResponseEvent instanceof BluetoothLeScanResultEvent) {
-			helloWorld.setText("Count: " + ++count + "\n" + commonResponseEvent.toString());
+	public void onCommonResponded(CommonEvent commonEvent) {
+		super.onCommonResponded(commonEvent);
+		if (commonEvent instanceof BluetoothLeScanResultEvent) {
+			helloWorld.setText("Count: " + ++count + "\n" + commonEvent.toString());
 
 			// 收集搜索结果
-			ScanRecordCompat scanRecordCompat = ((BluetoothLeScanResultEvent) commonResponseEvent).getScanRecord();
+			ScanRecordCompat scanRecordCompat = ((BluetoothLeScanResultEvent) commonEvent).getScanRecord();
 			List<ParcelUuid> serviceList = scanRecordCompat.getServiceUuids();
 			if (serviceList != null && serviceList.contains(new ParcelUuid(Constants.CSR_MESH_SERVICE))) {
-				String macAddress = ((BluetoothLeScanResultEvent) commonResponseEvent).getDevice().getAddress();
+				String macAddress = ((BluetoothLeScanResultEvent) commonEvent).getDevice().getAddress();
 				if (!scanResults.containsKey(macAddress)) {
 					scanResults.put(macAddress, scanRecordCompat);
 					Log.i(TAG, "mesh device count " + scanResults.size());
 				}
 			}
-		} else if (commonResponseEvent instanceof BluetoothGattEvent) {
+		} else if (commonEvent instanceof BluetoothGattEvent) {
 			// UI观察GATT连接事件，可以向用户反馈状态变化
-			Log.i(TAG, commonResponseEvent.toString());
-			String macAddress = ((BluetoothGattEvent) commonResponseEvent).getMacAddress();
-			switch (((BluetoothGattEvent) commonResponseEvent).getEventCode()) {
+			Log.i(TAG, commonEvent.toString());
+			String macAddress = ((BluetoothGattEvent) commonEvent).getMacAddress();
+			switch (((BluetoothGattEvent) commonEvent).getEventCode()) {
 				case GATT_SCAN_DEVICE_TIMEOUT:
 					Snackbar.make(coordinatorLayout, "scan timeout", Snackbar.LENGTH_SHORT).show();
 					break;
@@ -112,7 +112,8 @@ public class MainActivity extends BleCommunicationActivity {
 					communicationService.readCharacteristic(TARGET_DEVICE_ADDRESS);
 					break;
 				case GATT_CONNECT_TIMEOUT:
-				case GATT_DISCONNECTED:
+//				case GATT_DISCONNECTED:
+				case GATT_CLOSED:
 				case GATT_CONNECTION_ERROR:
 				case GATT_REMOTE_DISAPPEARED:
 					Snackbar.make(coordinatorLayout, "connection error", Snackbar.LENGTH_SHORT).show();
@@ -120,11 +121,11 @@ public class MainActivity extends BleCommunicationActivity {
 				default:
 					break;
 			}
-		} else if (commonResponseEvent instanceof CommunicationResponseEvent) {
+		} else if (commonEvent instanceof CommunicationResponseEvent) {
 			BLEDevice bleDevice = DeviceStore.getInstance().getDevice(
-					((CommunicationResponseEvent) commonResponseEvent).getMacAddress());
+					((CommunicationResponseEvent) commonEvent).getMacAddress());
 			if (bleDevice != null) {
-				switch (((CommunicationResponseEvent) commonResponseEvent).getFieldCode()) {
+				switch (((CommunicationResponseEvent) commonEvent).getFieldCode()) {
 					case BLEDevice.FRIENDLY_NAME_CODE:
 						deviceName.setText(bleDevice.getFriendlyName());
 						break;

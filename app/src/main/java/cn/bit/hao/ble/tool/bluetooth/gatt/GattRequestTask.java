@@ -45,7 +45,7 @@ public abstract class GattRequestTask {
 	}
 
 	/**
-	 * 正式执行任务
+	 * 正式执行任务，任务的反馈是指{@link BluetoothGattCallbackImpl}中的onXXX等回调方法
 	 *
 	 * @return 成功执行的话返回true，否则返回false
 	 */

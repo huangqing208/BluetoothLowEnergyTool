@@ -12,7 +12,7 @@ import java.util.UUID;
 
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUuid;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothGattEvent;
-import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
+import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 
 /**
  * @author wuhao on 2016/8/13
@@ -73,7 +73,7 @@ public class GattNotificationTask extends GattRequestTask {
 
 		if (!bluetoothGatt.setCharacteristicNotification(characteristic, enable)) {
 			// 看setCharacteristicNotification的源码可知，多半是发生了RemoteException，考虑重连
-			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+			CommonEventManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
 					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 			return false;
 		}

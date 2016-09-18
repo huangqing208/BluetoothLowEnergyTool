@@ -9,23 +9,23 @@ import android.os.IBinder;
 import cn.bit.hao.ble.tool.bluetooth.gatt.BluetoothGattManager;
 import cn.bit.hao.ble.tool.bluetooth.gatt.GattRequestManager;
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUuid;
-import cn.bit.hao.ble.tool.response.callbacks.CommonResponseListener;
-import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.callbacks.CommonEventListener;
+import cn.bit.hao.ble.tool.response.events.CommonEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothGattEvent;
-import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
+import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 
 /**
  * 此Service是用于通信的后台Service，负责处理来自UI的通信请求
  * 在整个应用程序中，主要分为逻辑、数据和UI三部分，此Service是介于UI和逻辑的桥梁
  */
-public class CommunicationService extends Service implements CommonResponseListener {
+public class CommunicationService extends Service implements CommonEventListener {
 	private static final String TAG = CommunicationService.class.getSimpleName();
 
 	private LocalBinder localBinder;
 
 	public CommunicationService() {
 		localBinder = new LocalBinder();
-		CommonResponseManager.getInstance().addTaskCallback(this);
+		CommonEventManager.getInstance().addTaskCallback(this);
 	}
 
 	@Override
@@ -42,7 +42,7 @@ public class CommunicationService extends Service implements CommonResponseListe
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		CommonResponseManager.getInstance().removeTaskCallback(this);
+		CommonEventManager.getInstance().removeTaskCallback(this);
 	}
 
 //	/**
@@ -112,10 +112,10 @@ public class CommunicationService extends Service implements CommonResponseListe
 	}
 
 	@Override
-	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
-		if (commonResponseEvent instanceof BluetoothGattEvent) {
-			String macAddress = ((BluetoothGattEvent) commonResponseEvent).getMacAddress();
-			switch (((BluetoothGattEvent) commonResponseEvent).getEventCode()) {
+	public void onCommonResponded(CommonEvent commonEvent) {
+		if (commonEvent instanceof BluetoothGattEvent) {
+			String macAddress = ((BluetoothGattEvent) commonEvent).getMacAddress();
+			switch (((BluetoothGattEvent) commonEvent).getEventCode()) {
 				case GATT_CONNECTED:
 					// TODO: If needed, setNotification here!!!
 					break;

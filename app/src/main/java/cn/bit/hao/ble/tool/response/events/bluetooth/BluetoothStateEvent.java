@@ -3,12 +3,12 @@
  */
 package cn.bit.hao.ble.tool.response.events.bluetooth;
 
-import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.events.CommonEvent;
 
 /**
  * @author wuhao on 2016/7/30
  */
-public class BluetoothStateEvent extends CommonResponseEvent {
+public class BluetoothStateEvent extends CommonEvent {
 	private static final String TAG = BluetoothStateEvent.class.getSimpleName();
 
 	public enum BluetoothStateCode {

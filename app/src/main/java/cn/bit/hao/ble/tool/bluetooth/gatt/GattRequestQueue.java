@@ -10,7 +10,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothGattEvent;
-import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
+import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 
 /**
  * Gatt请求队列，可以缓存请求任务
@@ -82,8 +82,8 @@ public class GattRequestQueue {
 
 		if (!task.execute()) {
 			// 如果任务执行有问题，可能有两种情况：
-			// 1、连接问题，没必要重试，待重连上了恢复执行就行；
-			// 2、设备忙，没必要重试，上个任务反馈后也会恢复执行的
+			// 1、连接问题，没必要重试，待连接重新建立后会调用此方法来恢复队列工作；
+			// 2、设备忙，没必要重试，前一个任务执行并反馈后会调用confirmTask来恢复队列工作。
 			deviceBusy = false;
 			return false;
 		}
@@ -98,7 +98,7 @@ public class GattRequestQueue {
 	private Runnable performTimeout = new Runnable() {
 		@Override
 		public void run() {
-			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+			CommonEventManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
 					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 		}
 	};

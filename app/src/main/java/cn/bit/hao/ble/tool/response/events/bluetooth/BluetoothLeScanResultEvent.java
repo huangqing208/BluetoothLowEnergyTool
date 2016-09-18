@@ -6,13 +6,13 @@ package cn.bit.hao.ble.tool.response.events.bluetooth;
 import android.bluetooth.BluetoothDevice;
 
 import cn.bit.hao.ble.tool.bluetooth.utils.ScanRecordCompat;
-import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.events.CommonEvent;
 import cn.bit.hao.ble.tool.util.ByteBitUtil;
 
 /**
  * @author wuhao on 2016/8/4
  */
-public class BluetoothLeScanResultEvent extends CommonResponseEvent {
+public class BluetoothLeScanResultEvent extends CommonEvent {
 	private static final String TAG = BluetoothLeScanResultEvent.class.getSimpleName();
 
 	private BluetoothDevice device;

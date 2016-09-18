@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothGattEvent;
-import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
+import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 
 /**
  * @author wuhao on 2016/8/13
@@ -65,7 +65,7 @@ public class GattWriteTask extends GattRequestTask {
 		if (!result) {
 			// 并不太清楚出错的原因是什么，可能是连接问题，也可能是设备忙。
 			// 解决方案倾向于对严重情况的处理，即处理连接问题。
-			CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+			CommonEventManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
 					BluetoothGattEvent.BluetoothGattCode.GATT_CONNECTION_ERROR));
 		}
 		return result;

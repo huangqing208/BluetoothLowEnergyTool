@@ -12,7 +12,7 @@ import java.lang.ref.WeakReference;
 
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUtil;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothStateEvent;
-import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
+import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 
 /**
  * 此Manager的最大作用就是管理蓝牙状态，并且向需要接收状态变化的对象通知状态变化事件。
@@ -37,7 +37,7 @@ public class BluetoothStateManager {
 	/**
 	 * 标志量，表示正在重置蓝牙
 	 */
-	private boolean resettingBluetooth = false;
+	private Boolean resettingBluetooth = false;
 
 	private BluetoothStateManager() {
 	}
@@ -113,13 +113,14 @@ public class BluetoothStateManager {
 	 *
 	 * @param newState 新的蓝牙状态
 	 */
-	/*package*/ synchronized void setBluetoothState(int newState) {
+	/*package*/
+	synchronized void setBluetoothState(int newState) {
 		if (bluetoothState == newState) {
 			return;
 		}
 		bluetoothState = newState;
 		if (newState == BluetoothAdapter.ERROR) {
-			CommonResponseManager.getInstance().sendResponse(new BluetoothStateEvent(
+			CommonEventManager.getInstance().sendResponse(new BluetoothStateEvent(
 					BluetoothStateEvent.BluetoothStateCode.BLUETOOTH_STATE_ERROR));
 			return;
 		}
@@ -131,9 +132,11 @@ public class BluetoothStateManager {
 			case BluetoothAdapter.STATE_OFF:
 				Context context = getContext();
 				if (context != null) {
-					if (resettingBluetooth) {
-						resettingBluetooth = false;
-						BluetoothUtil.setBluetoothState(context, true);
+					synchronized (resettingBluetooth) {
+						if (resettingBluetooth) {
+							resettingBluetooth = false;
+							BluetoothUtil.setBluetoothState(context, true);
+						}
 					}
 //					else {
 //						// TODO: 由UI来申请开启蓝牙，此处不做蓝牙开启请求
@@ -149,7 +152,7 @@ public class BluetoothStateManager {
 				break;
 		}
 		if (event != null) {
-			CommonResponseManager.getInstance().sendResponse(event);
+			CommonEventManager.getInstance().sendResponse(event);
 		}
 	}
 
@@ -178,16 +181,21 @@ public class BluetoothStateManager {
 	 * @return 如果成功执行返回true，否则返回false
 	 */
 	public boolean resetBluetooth() {
-		Context context = getContext();
-		if (context == null) {
-			return false;
+		synchronized (resettingBluetooth) {
+			if (resettingBluetooth) {
+				return true;
+			}
+			Context context = getContext();
+			if (context == null) {
+				return false;
+			}
+			if (!isBluetoothEnabled()) {
+				return false;
+			}
+			resettingBluetooth = BluetoothUtil.setBluetoothState(context, false);
+			Log.i(TAG, "resetBluetooth " + resettingBluetooth);
+			// 此处关闭蓝牙，监听到关闭状态时会主动打开蓝牙的
+			return resettingBluetooth;
 		}
-		if (!isBluetoothEnabled()) {
-			return false;
-		}
-		resettingBluetooth = BluetoothUtil.setBluetoothState(context, false);
-		Log.i(TAG, "resetBluetooth " + resettingBluetooth);
-		// 此处关闭蓝牙，监听到关闭状态时会主动打开蓝牙的
-		return resettingBluetooth;
 	}
 }

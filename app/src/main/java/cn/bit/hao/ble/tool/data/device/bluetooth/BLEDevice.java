@@ -10,7 +10,7 @@ import cn.bit.hao.ble.tool.application.Constants;
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUuid;
 import cn.bit.hao.ble.tool.protocol.GeneralProtocol;
 import cn.bit.hao.ble.tool.response.events.CommunicationResponseEvent;
-import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
+import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 
 /**
  * @author wuhao on 2016/7/14
@@ -48,7 +48,7 @@ public class BLEDevice {
 		this.friendlyName = friendlyName;
 		// 每变化一个状态则发出一次通知，所以，一次返回有可能有多次通知
 		CommunicationResponseEvent responseEvent = new CommunicationResponseEvent(macAddress, FRIENDLY_NAME_CODE);
-		CommonResponseManager.getInstance().sendResponse(responseEvent);
+		CommonEventManager.getInstance().sendResponse(responseEvent);
 	}
 
 	/**

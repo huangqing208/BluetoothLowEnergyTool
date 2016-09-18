@@ -20,17 +20,17 @@ import java.util.List;
 
 import cn.bit.hao.ble.tool.bluetooth.state.BluetoothStateManager;
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUtil;
-import cn.bit.hao.ble.tool.response.callbacks.CommonResponseListener;
-import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.callbacks.CommonEventListener;
+import cn.bit.hao.ble.tool.response.events.CommonEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothStateEvent;
-import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
+import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 
 /**
  * @author wuhao on 2016/8/3
  */
-public class BluetoothLeScanManager implements CommonResponseListener {
+public class BluetoothLeScanManager implements CommonEventListener {
 	private static final String TAG = BluetoothLeScanManager.class.getSimpleName();
 
 	private WeakReference<Context> applicationContext;
@@ -47,7 +47,7 @@ public class BluetoothLeScanManager implements CommonResponseListener {
 	 * 请求状态，与搜索状态独立，与外部请求相关。
 	 * 逻辑实现会基于搜索状态和请求状态来协调工作。
 	 */
-	private List<CommonResponseListener> scanListeners;
+	private List<CommonEventListener> scanListeners;
 
 	private LeScanCallbackImpl leScanCallback;
 	private ScanCallbackImpl scanCallback;
@@ -88,7 +88,7 @@ public class BluetoothLeScanManager implements CommonResponseListener {
 		}
 		applicationContext = new WeakReference<Context>(context.getApplicationContext());
 
-		CommonResponseManager.getInstance().addTaskCallback(instance);
+		CommonEventManager.getInstance().addTaskCallback(this);
 
 		// 假使上次finish无能将leScanCallback停止掉，那么这里必须先停止掉，才能确保之后startLeScan无虞
 		scanListeners.clear();
@@ -109,7 +109,7 @@ public class BluetoothLeScanManager implements CommonResponseListener {
 			performStopLeScan();
 		}
 
-		CommonResponseManager.getInstance().removeTaskCallback(this);
+		CommonEventManager.getInstance().removeTaskCallback(this);
 		applicationContext = null;
 	}
 
@@ -124,7 +124,7 @@ public class BluetoothLeScanManager implements CommonResponseListener {
 	 * @param listener 如果是请求开启搜索，则需要传入请求者对象，如果是请求恢复搜索，则传入null即可
 	 * @return 成功执行的话返回true，否则返回false
 	 */
-	public synchronized boolean startLeScan(CommonResponseListener listener) {
+	public synchronized boolean startLeScan(CommonEventListener listener) {
 		if (listener != null && !scanListeners.contains(listener)) {
 			scanListeners.add(listener);
 		}
@@ -157,7 +157,7 @@ public class BluetoothLeScanManager implements CommonResponseListener {
 					!= PackageManager.PERMISSION_GRANTED
 					|| context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
 					!= PackageManager.PERMISSION_GRANTED) {
-				CommonResponseManager.getInstance().sendResponse(new BluetoothLeScanEvent(
+				CommonEventManager.getInstance().sendResponse(new BluetoothLeScanEvent(
 						BluetoothLeScanEvent.BluetoothLeScanCode.LE_SCAN_PERMISSION_DENIED));
 				return false;
 			}
@@ -188,7 +188,7 @@ public class BluetoothLeScanManager implements CommonResponseListener {
 		@Override
 		public void run() {
 			handler.postDelayed(this, LE_SCAN_TIMEOUT);
-			CommonResponseManager.getInstance().sendResponse(
+			CommonEventManager.getInstance().sendResponse(
 					new BluetoothLeScanEvent(BluetoothLeScanEvent.BluetoothLeScanCode.LE_SCAN_TIMEOUT));
 		}
 	};
@@ -196,9 +196,9 @@ public class BluetoothLeScanManager implements CommonResponseListener {
 	/**
 	 * 停止Le搜索
 	 *
-	 * @param listener 监听者虽然是从{@link CommonResponseManager}接收返回的，但是此Manager需要做统计，方便得悉监听者数量
+	 * @param listener 监听者虽然是从{@link CommonEventManager}接收返回的，但是此Manager需要做统计，方便得悉监听者数量
 	 */
-	public synchronized void stopLeScan(CommonResponseListener listener) {
+	public synchronized void stopLeScan(CommonEventListener listener) {
 		if (listener != null) {
 			scanListeners.remove(listener);
 		}
@@ -235,9 +235,9 @@ public class BluetoothLeScanManager implements CommonResponseListener {
 	}
 
 	@Override
-	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
-		if (commonResponseEvent instanceof BluetoothStateEvent) {
-			switch (((BluetoothStateEvent) commonResponseEvent).getEventCode()) {
+	public void onCommonResponded(CommonEvent commonEvent) {
+		if (commonEvent instanceof BluetoothStateEvent) {
+			switch (((BluetoothStateEvent) commonEvent).getEventCode()) {
 				case BLUETOOTH_STATE_ON:
 					// 如果此前isLeScanning为true，表示之前是在搜索中的，那么这里得终止上次搜索
 					// 这么做是因为从源码可知，只有蓝牙开着的时候stop动作才有效，才能注销callback
@@ -265,7 +265,7 @@ public class BluetoothLeScanManager implements CommonResponseListener {
 				default:
 					break;
 			}
-		} else if (commonResponseEvent instanceof BluetoothLeScanResultEvent) {
+		} else if (commonEvent instanceof BluetoothLeScanResultEvent) {
 			// 搜索到设备时，认为蓝牙确实已经在工作了
 			handler.removeCallbacks(scanTimeout);
 		}

@@ -19,19 +19,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import cn.bit.hao.ble.tool.bluetooth.scan.BluetoothLeScanManager;
 import cn.bit.hao.ble.tool.bluetooth.state.BluetoothStateManager;
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUtil;
-import cn.bit.hao.ble.tool.response.callbacks.CommonResponseListener;
-import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.callbacks.CommonEventListener;
+import cn.bit.hao.ble.tool.response.events.CommonEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothGattEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothStateEvent;
-import cn.bit.hao.ble.tool.response.manager.CommonResponseManager;
+import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 
 /**
  * 管理App同设备的连接，对外支持开始连接、断开连接、提供连接对象等功能
  *
  * @author wuhao on 2016/7/18
  */
-public class BluetoothGattManager implements CommonResponseListener {
+public class BluetoothGattManager implements CommonEventListener {
 	private static final String TAG = BluetoothGattManager.class.getSimpleName();
 
 	private WeakReference<Context> applicationContext;
@@ -87,7 +87,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 		applicationContext = new WeakReference<>(context.getApplicationContext());
 
 		// 确保监听状态变化，可以在蓝牙不工作的时候做出反应
-		CommonResponseManager.getInstance().addTaskCallback(instance);
+		CommonEventManager.getInstance().addTaskCallback(this);
 		return true;
 	}
 
@@ -120,7 +120,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 		setTimeout(macAddress, TimeoutType.TYPE_SCAN_DEVICE_TIMEOUT, new Runnable() {
 			@Override
 			public void run() {
-				CommonResponseManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+				CommonEventManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
 						BluetoothGattEvent.BluetoothGattCode.GATT_SCAN_DEVICE_TIMEOUT));
 
 				// 在接收到设备信号前，且没有显式disconnect的时候，每次超时都提醒
@@ -170,7 +170,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 				setTimeout(macAddress, TimeoutType.TYPE_CONNECT_TIMEOUT, new Runnable() {
 					@Override
 					public void run() {
-						CommonResponseManager.getInstance().sendResponse(
+						CommonEventManager.getInstance().sendResponse(
 								new BluetoothGattEvent(macAddress,
 										BluetoothGattEvent.BluetoothGattCode.GATT_CONNECT_TIMEOUT));
 					}
@@ -284,6 +284,10 @@ public class BluetoothGattManager implements CommonResponseListener {
 			// After using a given BLE device, the app must call this method to ensure resources are
 			// released properly.
 			bluetoothGatt.close();
+
+			// 通知连接已中断
+			CommonEventManager.getInstance().sendResponse(new BluetoothGattEvent(macAddress,
+					BluetoothGattEvent.BluetoothGattCode.GATT_CLOSED));
 			Log.i(TAG, "closeGatt " + macAddress);
 		}
 	}
@@ -334,7 +338,7 @@ public class BluetoothGattManager implements CommonResponseListener {
 			}
 		}
 
-		CommonResponseManager.getInstance().removeTaskCallback(this);
+		CommonEventManager.getInstance().removeTaskCallback(this);
 		applicationContext = null;
 	}
 
@@ -434,9 +438,9 @@ public class BluetoothGattManager implements CommonResponseListener {
 	}
 
 	@Override
-	public void onCommonResponded(CommonResponseEvent commonResponseEvent) {
-		if (commonResponseEvent instanceof BluetoothStateEvent) {
-			switch (((BluetoothStateEvent) commonResponseEvent).getEventCode()) {
+	public void onCommonResponded(CommonEvent commonEvent) {
+		if (commonEvent instanceof BluetoothStateEvent) {
+			switch (((BluetoothStateEvent) commonEvent).getEventCode()) {
 				case BLUETOOTH_STATE_ON:
 					onBluetoothStateOn();
 					break;
@@ -447,9 +451,9 @@ public class BluetoothGattManager implements CommonResponseListener {
 				default:
 					break;
 			}
-		} else if (commonResponseEvent instanceof BluetoothLeScanResultEvent) {
+		} else if (commonEvent instanceof BluetoothLeScanResultEvent) {
 			// 如果搜索到需要重连的设备，那就去重连
-			String macAddress = ((BluetoothLeScanResultEvent) commonResponseEvent).getDevice().getAddress();
+			String macAddress = ((BluetoothLeScanResultEvent) commonEvent).getDevice().getAddress();
 			synchronized (bluetoothGattMap) {
 				if (!bluetoothGattMap.containsKey(macAddress)) {
 					return;
@@ -459,9 +463,9 @@ public class BluetoothGattManager implements CommonResponseListener {
 					connectDevice(macAddress);
 				}
 			}
-		} else if (commonResponseEvent instanceof BluetoothGattEvent) {
-			String macAddress = ((BluetoothGattEvent) commonResponseEvent).getMacAddress();
-			switch (((BluetoothGattEvent) commonResponseEvent).getEventCode()) {
+		} else if (commonEvent instanceof BluetoothGattEvent) {
+			String macAddress = ((BluetoothGattEvent) commonEvent).getMacAddress();
+			switch (((BluetoothGattEvent) commonEvent).getEventCode()) {
 				case GATT_CONNECTED:
 					synchronized (TimeoutType.TYPE_CONNECT_TIMEOUT) {
 						// 这个连接并不指的是连接建立的时候，而是连接并且查询到服务列表的时候

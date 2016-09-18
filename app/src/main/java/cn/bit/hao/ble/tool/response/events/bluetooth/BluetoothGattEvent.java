@@ -3,12 +3,12 @@
  */
 package cn.bit.hao.ble.tool.response.events.bluetooth;
 
-import cn.bit.hao.ble.tool.response.events.CommonResponseEvent;
+import cn.bit.hao.ble.tool.response.events.CommonEvent;
 
 /**
  * @author wuhao on 2016/8/1
  */
-public class BluetoothGattEvent extends CommonResponseEvent {
+public class BluetoothGattEvent extends CommonEvent {
 	private static final String TAG = BluetoothGattEvent.class.getSimpleName();
 
 	public enum BluetoothGattCode {
@@ -18,6 +18,11 @@ public class BluetoothGattEvent extends CommonResponseEvent {
 		 */
 		GATT_CONNECTED,
 		GATT_DISCONNECTED,
+		/**
+		 * 通常来说，对于应用层而言，GATT_CLOSED是较为可靠的连接断开标志，
+		 * 而GATT_DISCONNECTED只是内部逻辑的连接断开标志
+		 */
+		GATT_CLOSED,
 		GATT_CONNECT_TIMEOUT,
 		GATT_REMOTE_DISAPPEARED,
 		GATT_CONNECTION_ERROR
