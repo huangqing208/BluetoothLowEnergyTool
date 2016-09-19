@@ -1,5 +1,6 @@
 package cn.bit.hao.ble.tool.activity;
 
+import android.databinding.Observable;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.ParcelUuid;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cn.bit.hao.ble.tool.BR;
 import cn.bit.hao.ble.tool.R;
 import cn.bit.hao.ble.tool.application.App;
 import cn.bit.hao.ble.tool.application.Constants;
@@ -21,7 +23,6 @@ import cn.bit.hao.ble.tool.bluetooth.utils.ScanRecordCompat;
 import cn.bit.hao.ble.tool.data.DeviceStore;
 import cn.bit.hao.ble.tool.data.device.bluetooth.BLEDevice;
 import cn.bit.hao.ble.tool.response.events.CommonEvent;
-import cn.bit.hao.ble.tool.response.events.CommunicationResponseEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothGattEvent;
 import cn.bit.hao.ble.tool.response.events.bluetooth.BluetoothLeScanResultEvent;
 
@@ -58,7 +59,19 @@ public class MainActivity extends BleCommunicationActivity {
 		super.onStart();
 		// 界面呈现时，旧数据陈旧可信度不一定高，考虑清空重来
 		scanResults.clear();
-		deviceName.setText(DeviceStore.getInstance().getDevice(TARGET_DEVICE_ADDRESS).getFriendlyName());
+		BLEDevice device = DeviceStore.getInstance().getDevice(TARGET_DEVICE_ADDRESS);
+		if (device != null) {
+			deviceName.setText(device.getFriendlyName());
+			device.addOnPropertyChangedCallback(new Observable.OnPropertyChangedCallback() {
+				@Override
+				public void onPropertyChanged(Observable observable, int i) {
+					BLEDevice bleDevice = (BLEDevice) observable;
+					if (i == BR.friendlyName) {
+						deviceName.setText(bleDevice.getFriendlyName());
+					}
+				}
+			});
+		}
 	}
 
 	@Override
@@ -120,18 +133,6 @@ public class MainActivity extends BleCommunicationActivity {
 					break;
 				default:
 					break;
-			}
-		} else if (commonEvent instanceof CommunicationResponseEvent) {
-			BLEDevice bleDevice = DeviceStore.getInstance().getDevice(
-					((CommunicationResponseEvent) commonEvent).getMacAddress());
-			if (bleDevice != null) {
-				switch (((CommunicationResponseEvent) commonEvent).getFieldCode()) {
-					case BLEDevice.FRIENDLY_NAME_CODE:
-						deviceName.setText(bleDevice.getFriendlyName());
-						break;
-					default:
-						break;
-				}
 			}
 		}
 	}

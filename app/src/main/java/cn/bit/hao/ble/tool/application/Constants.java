@@ -10,8 +10,6 @@ import java.util.UUID;
  */
 public class Constants {
 
-	public static final int FIELD_UPDATE_CODE_BASE = 0x10000000;
-
 	public static final UUID CSR_MESH_SERVICE =
 			UUID.fromString("0000FEF1-0000-1000-8000-00805F9B34FB");
 

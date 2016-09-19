@@ -4,20 +4,19 @@
 package cn.bit.hao.ble.tool.data.device.bluetooth;
 
 
+import android.databinding.BaseObservable;
+import android.databinding.Bindable;
+
 import java.util.UUID;
 
-import cn.bit.hao.ble.tool.application.Constants;
+import cn.bit.hao.ble.tool.BR;
 import cn.bit.hao.ble.tool.bluetooth.utils.BluetoothUuid;
 import cn.bit.hao.ble.tool.protocol.GeneralProtocol;
-import cn.bit.hao.ble.tool.response.events.CommunicationResponseEvent;
-import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 
 /**
  * @author wuhao on 2016/7/14
  */
-public class BLEDevice {
-
-	protected static final int RESPONSE_CODE_BASE = Constants.FIELD_UPDATE_CODE_BASE + 0x01000000;
+public class BLEDevice extends BaseObservable {
 
 	protected String friendlyName;
 
@@ -31,12 +30,7 @@ public class BLEDevice {
 		return macAddress;
 	}
 
-	//==============================================================================================
-	// 如果UI有对某些属性变化有需求，那么才会有对应的属性代号用于反馈给UI
-	// 比如value是UI不敏感信息，则没有对应代号，而friendlyName是UI敏感信息，则有如下代号
-	public static final int FRIENDLY_NAME_CODE = RESPONSE_CODE_BASE + 0x001;
-	//==============================================================================================
-
+	@Bindable
 	public String getFriendlyName() {
 		return friendlyName;
 	}
@@ -46,9 +40,7 @@ public class BLEDevice {
 			return;
 		}
 		this.friendlyName = friendlyName;
-		// 每变化一个状态则发出一次通知，所以，一次返回有可能有多次通知
-		CommunicationResponseEvent responseEvent = new CommunicationResponseEvent(macAddress, FRIENDLY_NAME_CODE);
-		CommonEventManager.getInstance().sendResponse(responseEvent);
+		notifyPropertyChanged(BR.friendlyName);
 	}
 
 	/**
