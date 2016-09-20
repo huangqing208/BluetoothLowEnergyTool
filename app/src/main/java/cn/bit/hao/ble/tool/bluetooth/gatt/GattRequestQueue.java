@@ -14,7 +14,9 @@ import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 
 /**
  * Gatt请求队列，可以缓存请求任务
- * 在连接断开后再恢复连接时，原先请求过的Indication和Notification会默认执行一遍，不必重新设置
+ *
+ * TODO: 队列中的任务可以考虑加上确定的有效期限制，过期消息无须发送
+ * TODO: 为了后期拓展，必须加上取消任务的功能
  *
  * @author wuhao on 2016/8/15
  */

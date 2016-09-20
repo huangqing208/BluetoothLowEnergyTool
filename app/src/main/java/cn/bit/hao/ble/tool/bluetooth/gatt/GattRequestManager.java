@@ -81,6 +81,7 @@ public class GattRequestManager {
 
 	/**
 	 * 设置Characteristic的Notification/Indication功能
+	 * 注意：连接断开又重连后，需要再次设置此功能才行，否则不能保证正常接收返回
 	 *
 	 * @param macAddress       目标设备mac地址
 	 * @param service          目标Service UUID
@@ -219,7 +220,7 @@ public class GattRequestManager {
 
 	/**
 	 * 当确认任务执行结果的时候，调用此方法可以继续处理下一个任务
-	 * TODO: 这里的处理不知道行不行，因为没有判断当前返回和当前任务是否一致
+	 * TODO: 这里的处理可能不行，因为没有判断当前返回和当前任务是否一致！！！
 	 *
 	 * @param macAddress 目标设备mac地址
 	 * @param result     当前任务执行结果
