@@ -55,8 +55,8 @@ public class BluetoothGattEvent extends CommonEvent {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("eventCode: ").append(eventCode == null ? "null" : eventCode).append(", ")
-				.append("macAddress: ").append(macAddress == null ? "null" : macAddress);
+		sb.append("BluetoothGattEvent  ").append("macAddress: ").append(macAddress == null ? "null" : macAddress)
+				.append(", ").append("eventCode: ").append(eventCode == null ? "null" : eventCode);
 		return sb.toString();
 	}
 }

@@ -34,7 +34,8 @@ public class BluetoothLeScanEvent extends CommonEvent {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("bluetoothLeScanCode: ").append(bluetoothLeScanCode != null ? bluetoothLeScanCode : "null");
+		sb.append("BluetoothLeScanEvent  ").append("bluetoothLeScanCode: ")
+				.append(bluetoothLeScanCode != null ? bluetoothLeScanCode : "null");
 		return sb.toString();
 	}
 }

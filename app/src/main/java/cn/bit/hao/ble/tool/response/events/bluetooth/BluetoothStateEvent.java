@@ -34,7 +34,8 @@ public class BluetoothStateEvent extends CommonEvent {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("eventCode: ").append(eventCode == null ? "null" : eventCode);
+		sb.append("BluetoothStateEvent  ").append("eventCode: ")
+				.append(eventCode == null ? "null" : eventCode);
 		return sb.toString();
 	}
 }

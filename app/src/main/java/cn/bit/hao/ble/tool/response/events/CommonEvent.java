@@ -33,4 +33,10 @@ public abstract class CommonEvent implements Cloneable {
 		return result;
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("CommonEvent  ").append("other info");
+		return sb.toString();
+	}
 }

@@ -64,9 +64,9 @@ public class BluetoothLeScanResultEvent extends CommonEvent {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("device: ").append(device).append("; ")
-				.append("rssi: ").append(rssi).append("; ")
-				.append("scanRecord: ").append(ByteBitUtil.byteArrayToHexString(scanRecord.getBytes()))
+		sb.append("BluetoothLeScanResultEvent  ").append("device: ").append(device).append(", ")
+				.append("rssi: ").append(rssi).append(", ").append("scanRecord: ")
+				.append(ByteBitUtil.byteArrayToHexString(scanRecord.getBytes()))
 				.append("\n").append(scanRecord);
 		return sb.toString();
 	}
