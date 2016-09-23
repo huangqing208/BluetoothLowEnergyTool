@@ -98,8 +98,8 @@ public class MainActivity extends BleCommunicationActivity {
 	private Map<String, ScanRecordCompat> scanResults = new HashMap<>();
 
 	@Override
-	public void onCommonResponded(CommonEvent commonEvent) {
-		super.onCommonResponded(commonEvent);
+	public void onCommonEventHappened(CommonEvent commonEvent) {
+		super.onCommonEventHappened(commonEvent);
 		if (commonEvent instanceof BluetoothLeScanResultEvent) {
 			helloWorld.setText("Count: " + ++count + "\n" + commonEvent.toString());
 

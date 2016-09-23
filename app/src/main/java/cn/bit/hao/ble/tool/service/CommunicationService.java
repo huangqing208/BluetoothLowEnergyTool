@@ -112,7 +112,7 @@ public class CommunicationService extends Service implements CommonEventListener
 	}
 
 	@Override
-	public void onCommonResponded(CommonEvent commonEvent) {
+	public void onCommonEventHappened(CommonEvent commonEvent) {
 		if (commonEvent instanceof BluetoothGattEvent) {
 			String macAddress = ((BluetoothGattEvent) commonEvent).getMacAddress();
 			switch (((BluetoothGattEvent) commonEvent).getEventCode()) {

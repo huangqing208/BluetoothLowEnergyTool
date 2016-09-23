@@ -131,8 +131,8 @@ public class CommonEventManager {
 		synchronized (taskCallbacks) {
 			for (int i = 0; i < taskCallbacks.size(); ++i) {
 				// TODO: 通常来说不会修改通知内容的，所以默认用同一个通知对象，必要的话，可以深复制
-				taskCallbacks.get(i).onCommonResponded(commonEvent);
-//				taskCallbacks.get(i).onCommonResponded(commonResponseEvent.clone());
+				taskCallbacks.get(i).onCommonEventHappened(commonEvent);
+//				taskCallbacks.get(i).onCommonEventHappened(commonResponseEvent.clone());
 			}
 		}
 		// UI接收的话必须在主线程，如果是业务逻辑的话，无所谓
@@ -146,7 +146,7 @@ public class CommonEventManager {
 					int size = uiCallbacks.size();
 					if (size > 0) {
 						// UICallback只提醒最后一个
-						uiCallbacks.get(size - 1).onCommonResponded(commonEvent);
+						uiCallbacks.get(size - 1).onCommonEventHappened(commonEvent);
 					}
 				}
 			}

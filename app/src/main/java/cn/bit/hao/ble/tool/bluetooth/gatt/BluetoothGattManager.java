@@ -438,7 +438,7 @@ public class BluetoothGattManager implements CommonEventListener {
 	}
 
 	@Override
-	public void onCommonResponded(CommonEvent commonEvent) {
+	public void onCommonEventHappened(CommonEvent commonEvent) {
 		if (commonEvent instanceof BluetoothStateEvent) {
 			switch (((BluetoothStateEvent) commonEvent).getEventCode()) {
 				case BLUETOOTH_STATE_ON:

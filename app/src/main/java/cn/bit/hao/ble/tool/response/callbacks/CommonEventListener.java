@@ -15,5 +15,5 @@ public interface CommonEventListener {
 	 *
 	 * @param commonEvent 反馈的事件对象
 	 */
-	public void onCommonResponded(CommonEvent commonEvent);
+	public void onCommonEventHappened(CommonEvent commonEvent);
 }
