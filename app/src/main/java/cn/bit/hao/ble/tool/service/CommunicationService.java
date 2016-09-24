@@ -21,7 +21,7 @@ import cn.bit.hao.ble.tool.response.manager.CommonEventManager;
 public class CommunicationService extends Service implements CommonEventListener {
 	private static final String TAG = CommunicationService.class.getSimpleName();
 
-	private LocalBinder localBinder;
+	private final LocalBinder localBinder;
 
 	public CommunicationService() {
 		localBinder = new LocalBinder();

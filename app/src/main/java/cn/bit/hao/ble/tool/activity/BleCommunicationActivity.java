@@ -62,6 +62,7 @@ public abstract class BleCommunicationActivity extends BaseActivity {
 	protected abstract void beforeCommunicationServiceUnbound();
 
 	private void unbindCommunicationService() {
+		beforeCommunicationServiceUnbound();
 		if (communicationService != null) {
 			unbindService(communicationServiceConnection);
 			communicationService = null;
@@ -72,7 +73,6 @@ public abstract class BleCommunicationActivity extends BaseActivity {
 	protected void onPause() {
 		super.onPause();
 		if (isFinishing() && communicationService != null) {
-			beforeCommunicationServiceUnbound();
 			unbindCommunicationService();
 		}
 	}
@@ -81,7 +81,6 @@ public abstract class BleCommunicationActivity extends BaseActivity {
 	protected void onDestroy() {
 		super.onDestroy();
 		if (communicationService != null) {
-			beforeCommunicationServiceUnbound();
 			unbindCommunicationService();
 		}
 	}
