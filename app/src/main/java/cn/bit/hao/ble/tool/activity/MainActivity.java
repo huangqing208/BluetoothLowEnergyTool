@@ -10,11 +10,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.android.databinding.library.baseAdapters.BR;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import cn.bit.hao.ble.tool.BR;
 import cn.bit.hao.ble.tool.R;
 import cn.bit.hao.ble.tool.application.App;
 import cn.bit.hao.ble.tool.application.Constants;
@@ -66,8 +67,10 @@ public class MainActivity extends BleCommunicationActivity {
 				@Override
 				public void onPropertyChanged(Observable observable, int i) {
 					BLEDevice bleDevice = (BLEDevice) observable;
-					if (i == BR.friendlyName) {
-						deviceName.setText(bleDevice.getFriendlyName());
+					switch (i) {
+						case BR.friendlyName:
+							deviceName.setText(bleDevice.getFriendlyName());
+							break;
 					}
 				}
 			});
