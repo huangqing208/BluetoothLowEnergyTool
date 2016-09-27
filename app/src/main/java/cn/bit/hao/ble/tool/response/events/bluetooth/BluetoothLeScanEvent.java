@@ -27,10 +27,6 @@ public class BluetoothLeScanEvent extends CommonEvent {
 		return bluetoothLeScanCode;
 	}
 
-	public void setBluetoothLeScanCode(BluetoothLeScanCode bluetoothLeScanCode) {
-		this.bluetoothLeScanCode = bluetoothLeScanCode;
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

@@ -27,10 +27,6 @@ public class BluetoothStateEvent extends CommonEvent {
 		return eventCode;
 	}
 
-	public void setEventCode(BluetoothStateCode eventCode) {
-		this.eventCode = eventCode;
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

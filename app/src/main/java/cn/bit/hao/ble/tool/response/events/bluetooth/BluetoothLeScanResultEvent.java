@@ -29,24 +29,12 @@ public class BluetoothLeScanResultEvent extends CommonEvent {
 		return scanRecord;
 	}
 
-	public void setScanRecord(ScanRecordCompat scanRecord) {
-		this.scanRecord = scanRecord;
-	}
-
 	public BluetoothDevice getDevice() {
 		return device;
 	}
 
-	public void setDevice(BluetoothDevice device) {
-		this.device = device;
-	}
-
 	public int getRssi() {
 		return rssi;
-	}
-
-	public void setRssi(int rssi) {
-		this.rssi = rssi;
 	}
 
 	@Override

@@ -40,16 +40,8 @@ public class BluetoothGattEvent extends CommonEvent {
 		return eventCode;
 	}
 
-	public void setEventCode(BluetoothGattCode eventCode) {
-		this.eventCode = eventCode;
-	}
-
 	public String getMacAddress() {
 		return macAddress;
-	}
-
-	public void setMacAddress(String macAddress) {
-		this.macAddress = macAddress;
 	}
 
 	@Override
